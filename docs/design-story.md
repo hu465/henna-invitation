@@ -30,7 +30,7 @@ Motion principles reproduced:
 ## Why not Three.js
 The `threejs` skill was evaluated. CSS 3D transforms already give a real hinge rotation,
 perspective travel and backface switching, and they keep Arabic text as live, shaped, selectable,
-screen-reader-visible DOM. WebGL text would need a Arabic shaping pipeline, cost roughly 600 KB more, and
+screen-reader-visible DOM. WebGL text would need an Arabic shaping pipeline, cost roughly 600 KB more, and
 add a GPU/battery and accessibility burden without a visible gain for a paper envelope.
 
 ## Peak moment
