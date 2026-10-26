@@ -12,6 +12,7 @@ import { InvitationFace } from './InvitationFace'
 import { Countdown } from './Countdown'
 import { Location } from './Location'
 import { Rsvp } from './Rsvp'
+import { InviteQr, QrActions } from './InviteQr'
 import { arDigits, eventStart, hijriDate, timeLabel, weekday } from '../lib/format'
 import './invitation.css'
 
@@ -42,16 +43,14 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
   // The RSVP shortcut appears between the hero and the RSVP scene.
   useEffect(() => {
     if (!ready) return
-    const hero = document.querySelector('.hero')
-    const rsvp = document.getElementById('rsvp')
-    if (!hero || !rsvp) return
+    // Hidden over the hero and from the RSVP scene onwards, where it would cover controls.
+    const hiders = ['.hero', '#rsvp', '#share', '.closing'].map((s) => document.querySelector(s)).filter((el): el is Element => !!el)
     const seen = new Map<Element, boolean>()
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => seen.set(e.target, e.isIntersecting))
-      setPillHidden(!!seen.get(hero) || !!seen.get(rsvp))
+      setPillHidden(hiders.some((el) => seen.get(el)))
     }, { threshold: 0.05 })
-    io.observe(hero)
-    io.observe(rsvp)
+    hiders.forEach((el) => io.observe(el))
     return () => io.disconnect()
   }, [ready])
 
@@ -242,6 +241,25 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
         </div>
       </section>
 
+      {/* ── Share: QR code for passing the invitation on ── */}
+      <section id="share" className="scene scene--paper scene--share" data-scene aria-labelledby="share-title">
+        <div className="scene-art scene-art--c" data-parallax="12" aria-hidden="true">
+          <OliveBranch className="grow-branch" leaves={12} olives={2} seed={71} />
+        </div>
+        <div className="scene-inner">
+          <p className="eyebrow" data-rise>شاركي الفرحة</p>
+          <h2 id="share-title" className="scene-title" data-wipe>رمز الدعوة</h2>
+          <div className="share-layout">
+            <div data-rise>
+              <InviteQr event={event} />
+            </div>
+            <div data-rise>
+              <QrActions event={event} />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── Closing ── */}
       <footer className="closing" data-scene>
         <div className="closing-grove" aria-hidden="true"><OliveGrove seed={27} trees={10} /></div>
@@ -250,7 +268,12 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
         </div>
         <p className="closing-line" data-wipe>بانتظاركم بكل الحب</p>
         <p className="closing-names" data-rise>
-          {event.brideName} <span aria-hidden="true">·</span> {event.groomName}
+          {event.brideName}
+          {event.groomName && (
+            <>
+              {' '}<span aria-hidden="true">·</span> {event.groomName}
+            </>
+          )}
         </p>
         <button type="button" className="btn btn--text replay" onClick={onReplay}>
           إعادة فتح الدعوة

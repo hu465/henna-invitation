@@ -23,13 +23,15 @@ export interface EventDetails {
   /** Optional looping atmosphere video for the hero (muted), with a poster image fallback. */
   ambientVideo: string
   ambientPoster: string
+  /** Link encoded in the QR code. Empty = the address the invitation is opened from. */
+  inviteUrl: string
 }
 
 export const defaultEvent: EventDetails = {
   // Placeholders — replace with the real details before sending.
-  brideName: 'اسم العروس',
-  groomName: 'اسم العريس',
-  monogram: 'ح',
+  brideName: 'سارة عمر يونس',
+  groomName: '',
+  monogram: 'س',
   hostLine: 'تتشرّف عائلة العروس بدعوتكم',
   date: '2026-12-17',
   time: '20:00',
@@ -37,11 +39,13 @@ export const defaultEvent: EventDetails = {
   venueName: 'اسم القاعة',
   venueAddress: 'المدينة — العنوان التفصيلي',
   mapUrl: '',
-  dressCode: 'الثوب التراثي المطرّز أو الأخضر الزيتوني',
+  dressCode: 'الثوب',
   note: 'السهرة للسيدات فقط',
   hostWhatsapp: '',
   rsvpDeadline: '2026-12-10',
   musicUrl: '',
   ambientVideo: '',
   ambientPoster: '',
+  // Replace with the final hosted link before printing or sharing the QR code.
+  inviteUrl: 'https://claude.ai/artifact/2BC3DXVGzLFKnN6GNUFiDc',
 }

@@ -2,6 +2,8 @@ import { useState, type ChangeEvent } from 'react'
 import type { EventDetails } from '../config/event'
 import { loadEvent, loadRsvps, loadTasks, removeRsvp, resetEvent, saveEvent, saveTasks, type Task } from '../lib/store'
 import { arDigits } from '../lib/format'
+import { InviteQr, QrActions } from '../invitation/InviteQr'
+import '../invitation/invitation.css'
 import './planner.css'
 
 const fields: { key: keyof EventDetails; label: string; type?: string; hint?: string }[] = [
@@ -22,6 +24,7 @@ const fields: { key: keyof EventDetails; label: string; type?: string; hint?: st
   { key: 'musicUrl', label: 'رابط ملف الموسيقى', type: 'url', hint: 'اتركيه فارغاً لاستخدام النغمة الهادئة المولّدة' },
   { key: 'ambientVideo', label: 'رابط فيديو الخلفية', type: 'url', hint: 'اختياري: فيديو قصير صامت يتكرر خلف الدعوة' },
   { key: 'ambientPoster', label: 'صورة بديلة للفيديو', type: 'url' },
+  { key: 'inviteUrl', label: 'رابط الدعوة (لرمز QR)', type: 'url', hint: 'الرابط الذي يفتحه رمز QR' },
 ]
 
 export function Planner() {
@@ -86,6 +89,13 @@ export function Planner() {
             <span role="status" className="p-saved">{saved ? 'تم الحفظ' : ''}</span>
           </div>
         </form>
+      </section>
+
+      <section className="panel p-qr" aria-labelledby="p-qr">
+        <h2 id="p-qr">رمز QR للدعوة</h2>
+        <p className="panel-note">اطبعيه على البطاقات الورقية أو أرسليه مع الرابط. يفتح الرمز رابط الدعوة المحدد في الإعدادات.</p>
+        <InviteQr event={event} />
+        <QrActions event={event} download />
       </section>
 
       <section className="panel" aria-labelledby="p-rsvp">
