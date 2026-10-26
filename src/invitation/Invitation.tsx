@@ -282,7 +282,18 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
 
       {ready && (
         <>
-          <SoundToggle url={event.musicUrl} className="page-sound" />
+          <div className="page-controls">
+            <SoundToggle url={event.musicUrl} className="page-sound" />
+            {/* Always within reach: go back to the closed envelope and play the opening again. */}
+            <button type="button" className="page-replay" onClick={onReplay} aria-label="العودة إلى الافتتاحية وفتح الدعوة من جديد">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round">
+                <rect x="3" y="6" width="18" height="13" rx="1.5" />
+                <path d="M3.5 7 L12 13.5 L20.5 7" />
+                <circle cx="12" cy="13.5" r="2.2" fill="currentColor" stroke="none" />
+              </svg>
+              <span>الافتتاحية</span>
+            </button>
+          </div>
           <a className="rsvp-pill" href="#rsvp" data-hidden={pillHidden} tabIndex={pillHidden ? -1 : undefined} aria-hidden={pillHidden || undefined}>
             تأكيد الحضور
           </a>
