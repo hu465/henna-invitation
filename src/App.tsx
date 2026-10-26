@@ -17,7 +17,7 @@ function useHashRoute() {
 
 export function App() {
   const hash = useHashRoute()
-  if (hash.startsWith('#/planner')) return <Planner />
+  if (hash.startsWith('#/planner') || hash === '#planner') return <Planner />
   return <GuestInvitation />
 }
 
