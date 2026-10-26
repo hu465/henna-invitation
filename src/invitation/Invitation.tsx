@@ -17,9 +17,11 @@ interface Props {
   event: EventDetails
   /** True once the envelope has handed over; scroll scenes start then. */
   ready: boolean
+  /** Plays the envelope opening again from the start. */
+  onReplay: () => void
 }
 
-export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ event, ready }, heroRef) {
+export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ event, ready, onReplay }, heroRef) {
   const main = useRef<HTMLElement>(null)
   const [pillHidden, setPillHidden] = useState(true)
 
@@ -179,6 +181,9 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
         <p className="closing-names" data-rise>
           {event.brideName} <span aria-hidden="true">·</span> {event.groomName}
         </p>
+        <button type="button" className="btn btn--text replay" onClick={onReplay}>
+          إعادة فتح الدعوة
+        </button>
       </footer>
 
       {ready && (

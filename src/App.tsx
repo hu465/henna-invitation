@@ -40,10 +40,15 @@ function GuestInvitation() {
     requestAnimationFrame(() => hero.current?.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true }))
   }, [])
 
+  const replay = useCallback(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    setIntroDone(false)
+  }, [])
+
   return (
     <>
       <div inert={!introDone || undefined} aria-hidden={!introDone || undefined}>
-        <Invitation ref={hero} event={event} ready={introDone} />
+        <Invitation ref={hero} event={event} ready={introDone} onReplay={replay} />
       </div>
       {!introDone && <EnvelopeIntro event={event} buildHeroReveal={buildHeroReveal} onDone={done} />}
     </>
