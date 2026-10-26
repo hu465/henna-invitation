@@ -14,21 +14,36 @@ Motion principles reproduced:
 5. **Continuity of material**: the card scales until its ivory paper *is* the page, then the artwork and Arabic typography are drawn onto it.
 6. **Reading direction**: Arabic lines are revealed with a right-to-left wipe that follows the reading direction.
 
-## Opening state machine (one GSAP timeline, ≈6.9 s)
-Each phase is a label on the master timeline. `onPhase` reports it to the app, which mirrors it on
-`<html data-invite-phase="…">` for styling and tests.
+## Reference: the client's video (tone-on-tone embossed invitation)
+The client shared a screen recording of a premium digital invitation and asked for that exact
+style in our palette. Principles taken from it:
+- **One material, sculpted.** Everything is the same paper colour, lifted or pressed by light and
+  shadow (bas-relief), never outlined in a contrasting colour. Built with SVG bevel filters drawn
+  once and baked to bitmaps (`src/art/Relief.tsx`).
+- **Full-bleed envelope.** The phone *is* the envelope: a four-petal fold with relief leaves and a
+  wax seal at the centre.
+- **Petals unfold, a satin ribbon unties, the card is revealed in place.** No flying card.
+- **Ornate cartouche** with relief roses and leaves in the corners; the writing appears inside it.
+- **Scroll scenes in the same language:** an embossed countdown plaque on a dark band, a satin
+  surface with a pearl-rimmed oval cameo, a fine engraving of the venue with a plaque button, the
+  day's programme framed by embossed drapes, and the dress code inside an embossed arch with a
+  line drawing.
 
+Palette translation: the reference's mauve becomes olive paper for the envelope, ivory paper for
+the card, champagne satin for the ribbon and wax, and sage or olive satin for the textured scenes.
+
+## Opening state machine (one GSAP timeline, ≈5.5 s)
 | t (s) | Phase | What happens |
 |---|---|---|
-| 0.00 | `closed` → `sealActivated` | The seal presses in, glows and springs back. A hairline crack draws through the wax (0.24 s), and at 0.42 s the two halves fall away with crumbs. |
-| 0.48 | `envelopeOpening` | The flap swings 180° on its top hinge (CSS 3D, two-faced: olive outside, ivory lining inside). At 90° its z-order passes behind the card, and the inside of the envelope darkens. |
-| 1.10 | `cardEmerging` | The card slides up out of the pocket while the envelope sinks (counter-motion). Once the card clears, it travels forward and up with a perspective arc and a deepening shadow while the room dims. |
-| 3.15 | (expand) | The card scales until its ivory paper *is* the page. |
-| 3.95 | `invitationRevealing` | The deep-olive frame opens from the centre, the arch draws, and the olive crest grows leaf by leaf. Arabic lines wipe in right-to-left. The heading «ليلة الحنّة» is traced as a stroke, then filled with ink. |
-| ≈6.85 | `invitationOpen` | Scroll unlocks, focus moves to the heading, and the scenes below come alive on scroll. |
+| 0.00 | `closed` → `sealActivated` | The seal presses and glows, a crack draws through it, and the halves fall with crumbs (0.42 s). |
+| 0.46 | `envelopeOpening` | The top petal swings open on its hinge (rotateX), then left and right (rotateY), then bottom. Each shows its ivory lining as it passes edge-on. |
+| 1.66 | `cardEmerging` | The card sits inside on olive satin, tied with a champagne ribbon. The bow loops collapse into the knot, the tails drop, and the band slides off both sides. The card lifts to fill the screen. |
+| ≈3.1 | `invitationRevealing` | The Arabic lines wipe in right to left, and «ليلة الحنّة» is traced as a stroke, then inked. |
+| ≈5.5 | `invitationOpen` | Scroll unlocks and the scenes continue. |
 
-Skipping (button or `tl.progress(1)`), reduced motion (a 0.45 s cross-fade) and a 12 s failsafe all
-end in `invitationOpen` with scroll unlocked.
+Performance: the relief is rasterised once per viewport size in a priority queue (envelope
+first, then the card, then the rest), paused while the opening plays. Large outlines use cheap
+offset strokes instead of filters.
 
 ## Why not Three.js
 The `threejs` skill was evaluated. CSS 3D transforms already give a real hinge rotation,

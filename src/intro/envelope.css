@@ -1,70 +1,92 @@
-/* Scene 1–2: the envelope. Mobile-first.
-   Layer order inside the stage (back → front):
-   ground shadow · paper thickness · back + lining (1) · open flap (2) · card (3)
-   · pocket folds (4) · closed flap (5) · seal (6). The timeline swaps z-index
-   at the exact moments the real paper would pass. */
+/* Scene 1–2: a full-screen petal-fold envelope in embossed olive paper.
+   Petal stacking (back → front): bottom · left · right · top · seal. */
 
 .intro {
-  --lining: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'><g fill='%2366764A' fill-opacity='.34'><path d='M14 58 C 22 46 32 38 46 30' stroke='%2366764A' stroke-opacity='.45' stroke-width='1.1' fill='none'/><path d='M22 48 c -1 -7 3 -12 8 -14 c 1 6 -3 11 -8 14z'/><path d='M24 50 c 6 -2 11 0 13 4 c -6 2 -11 0 -13 -4z'/><path d='M33 40 c -1 -7 3 -11 8 -13 c 1 6 -3 10 -8 13z'/><path d='M35 42 c 6 -2 11 0 13 4 c -6 2 -11 0 -13 -4z'/><path d='M46 30 c 3 -5 8 -6 12 -5 c -3 4 -7 6 -12 5z'/><ellipse cx='27' cy='57' rx='2.6' ry='3.4' fill-opacity='.42'/></g><g stroke='%23C6B58A' stroke-width='.9'><path d='M64 62l3 3M67 62l-3 3M61 65l3 3M64 65l-3 3M67 65l3 3M70 65l-3 3M64 68l3 3M67 68l-3 3'/></g></svg>");
   position: fixed;
   inset: 0;
   z-index: 100;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(1.1rem, 3.4svh, 2.4rem);
-  padding: max(env(safe-area-inset-top), 1rem) max(16px, env(safe-area-inset-right)) max(env(safe-area-inset-bottom), 1rem) max(16px, env(safe-area-inset-left));
   overflow: hidden;
   isolation: isolate;
+  cursor: pointer;
   -webkit-user-select: none;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* ---------- Atmosphere ---------- */
-
-.intro-bg {
-  --bg-dim: 0;
+.petals {
   position: absolute;
   inset: 0;
-  z-index: -1;
-  overflow: hidden;
-  background: radial-gradient(ellipse 85% 70% at 50% 44%, #fffdf6 0%, var(--ivory) 34%, #eceedf 62%, #c9cfb5 86%, #8d9a74 100%);
+  perspective: 1500px;
+  perspective-origin: 50% 50%;
 }
 
-.intro-bg::before {
-  content: '';
+.petal {
   position: absolute;
   inset: 0;
-  background-image: var(--grain);
-  opacity: 0.07;
-  mix-blend-mode: multiply;
+  transform-style: preserve-3d;
+  will-change: transform;
+  pointer-events: none;
 }
 
-/* Darkening for the moment the card comes toward the guest. */
-.intro-bg::after {
-  content: '';
+.petal-face {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 45%, rgba(55, 68, 42, 0.55), rgba(32, 40, 24, 0.94));
-  opacity: var(--bg-dim);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
-.intro-vignette {
+/* Plain olive paper only until the relief is baked, and never once opening. */
+.petals {
+  background: #5d6d44;
+}
+
+.petals:has(.petal-front img),
+.intro:not([data-phase='closed']) .petals {
+  background: transparent;
+}
+
+.petal-face svg,
+.petal-face img {
   position: absolute;
   inset: 0;
-  box-shadow: inset 0 0 140px 30px rgba(70, 84, 56, 0.35);
+  overflow: visible;
 }
 
-.intro-sun {
+/* Inside of each petal: ivory lining with a fine olive sprig print. */
+.petal-back {
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><g fill='%2366764A' fill-opacity='.22'><path d='M12 44 C 20 34 30 28 42 22' stroke='%2366764A' stroke-opacity='.3' fill='none'/><path d='M20 36 c -1 -6 3 -10 7 -12 c 1 5 -2 9 -7 12z'/><path d='M29 30 c -1 -6 3 -9 7 -11 c 1 5 -2 8 -7 11z'/><path d='M22 38 c 5 -2 9 0 11 3 c -5 2 -9 0 -11 -3z'/></g></svg>"),
+    linear-gradient(160deg, var(--ivory), var(--sage));
+  background-size: 44px 44px, auto;
+}
+
+.petal--top .petal-back,
+.petal--bottom .petal-back {
+  transform: rotateX(180deg);
+}
+
+.petal--left .petal-back,
+.petal--right .petal-back {
+  transform: rotateY(180deg);
+}
+
+/* Soft light travelling across the paper, and a few motes in it. */
+.intro-ambient {
   position: absolute;
-  width: 120vmax;
-  height: 120vmax;
-  top: -70vmax;
-  right: -55vmax;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 244, 214, 0.9) 0%, rgba(255, 244, 214, 0.35) 30%, rgba(255, 244, 214, 0) 60%);
-  animation: sun-breathe 9s ease-in-out infinite alternate;
+  inset: 0;
+  pointer-events: none;
+}
+
+.intro-sheen {
+  position: absolute;
+  inset: -20%;
+  background: linear-gradient(115deg, transparent 38%, rgba(255, 248, 225, 0.16) 47%, rgba(255, 248, 225, 0.05) 52%, transparent 60%);
+  animation: sheen-drift 9s ease-in-out infinite alternate;
+}
+
+@keyframes sheen-drift {
+  from { transform: translateX(-18%); }
+  to { transform: translateX(18%); }
 }
 
 @keyframes sun-breathe {
@@ -72,54 +94,64 @@
   to { transform: scale(1.04); opacity: 1; }
 }
 
-/* Blurred branches read as foliage shadows falling across the table; the
-   blurred layer moves as a whole so the blur is rasterised once. */
-.leaf-shadow {
-  position: absolute;
-  width: max(80vmax, 620px);
-  opacity: 0.16;
-  filter: blur(8px);
-  will-change: transform;
-}
-
-.leaf-shadow .ob-sway {
-  animation: none;
-}
-
-.ls-1 {
-  top: -16%;
-  right: -30%;
-  rotate: 166deg;
-  animation: shadow-drift 11s ease-in-out infinite alternate;
-}
-
-.ls-2 {
-  bottom: -20%;
-  left: -34%;
-  rotate: -12deg;
-  opacity: 0.12;
-  animation: shadow-drift 13s ease-in-out -4s infinite alternate;
-}
-
 @keyframes shadow-drift {
   from { transform: translate(0, 0) rotate(-1.5deg); }
   to { transform: translate(-14px, 10px) rotate(1.8deg); }
 }
 
-.intro-light {
+/* ---------- Copy: champagne foil pressed into the paper ---------- */
+
+.intro-copy {
   position: absolute;
-  inset: -30%;
-  background: linear-gradient(118deg, transparent 40%, rgba(255, 250, 232, 0.6) 47%, rgba(255, 250, 232, 0.15) 52%, transparent 58%);
-  mix-blend-mode: soft-light;
-  animation: light-drift 12s ease-in-out infinite alternate;
+  left: 0;
+  right: 0;
+  margin: 0;
+  text-align: center;
+  pointer-events: none;
+  color: #d8c99c;
+  text-shadow: 0 -1px 0 rgba(20, 26, 12, 0.55), 0 1px 0 rgba(255, 246, 214, 0.35), 0 0 18px rgba(198, 181, 138, 0.25);
 }
 
-@keyframes light-drift {
-  from { transform: translateX(-10%); }
-  to { transform: translateX(10%); }
+.intro-kicker {
+  top: calc(max(env(safe-area-inset-top), 12px) + 4.6rem);
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 8.6vw, 3.4rem);
+  line-height: 1.3;
 }
 
-/* ---------- Copy & controls ---------- */
+.intro-hint {
+  bottom: calc(max(env(safe-area-inset-bottom), 12px) + 2.6rem);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--font-body);
+  font-size: clamp(1.05rem, 4.4vw, 1.3rem);
+}
+
+.hint-ring {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--champagne);
+}
+
+.hint-ring::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1.5px solid var(--champagne);
+  animation: ring 2.2s var(--ease-out) infinite;
+}
+
+@keyframes ring {
+  from { transform: scale(0.6); opacity: 1; }
+  to { transform: scale(1.8); opacity: 0; }
+}
+
+/* ---------- Controls ---------- */
 
 .intro-bar {
   position: absolute;
@@ -128,7 +160,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  z-index: 2;
+  z-index: 3;
+  cursor: default;
 }
 
 .intro-skip,
@@ -138,11 +171,11 @@
   gap: 0.4rem;
   min-height: 44px;
   padding: 0.35rem 1rem;
-  font-family: var(--font-label);
-  font-size: 0.92rem;
-  color: var(--olive-deep);
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(70, 84, 56, 0.22);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--ivory);
+  background: rgba(36, 44, 26, 0.35);
+  border: 1px solid rgba(216, 201, 156, 0.4);
   border-radius: 999px;
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
@@ -151,7 +184,7 @@
 
 .intro-skip:hover,
 .sound-toggle:hover {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(36, 44, 26, 0.55);
 }
 
 .sound-toggle svg {
@@ -171,456 +204,21 @@
   50% { opacity: 0.35; }
 }
 
-.intro-head {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--champagne-deep);
-}
-
-.intro-head .tz-star {
-  width: 20px;
-}
-
-.intro-band {
-  width: min(56vw, 230px);
-  color: var(--champagne);
-}
-
-.intro-kicker {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(2.1rem, 9vw, 3.4rem);
-  line-height: 1.25;
-  color: var(--olive-deep);
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8), 0 8px 24px rgba(70, 84, 56, 0.15);
-}
-
-.intro-hint {
-  position: relative;
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.8rem;
-  font-family: var(--font-label);
-  font-size: clamp(1.05rem, 4.2vw, 1.25rem);
-  color: var(--olive-rich);
-}
-
-.hint-ring {
-  position: relative;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--champagne);
-}
-
-.hint-ring::after {
-  content: '';
-  position: absolute;
-  inset: -6px;
-  border-radius: 50%;
-  border: 1.5px solid var(--champagne);
-  animation: ring 2.2s var(--ease-out) infinite;
-}
-
-@keyframes ring {
-  from { transform: scale(0.6); opacity: 1; }
-  to { transform: scale(1.8); opacity: 0; }
-}
-
-/* ---------- Stage ---------- */
-
-.stage-tilt,
-.stage-float {
-  position: relative;
-  will-change: transform;
-}
-
-.stage {
-  --ar: 1.38;
-  --w: min(70vw, 620px, calc(54svh * 1.38));
-  --flap: 58%;
-  --meet: 55%;
-  --apex: 43%;
-  --seal: clamp(84px, calc(var(--w) * 0.19), 126px);
-  position: relative;
-  width: var(--w);
-  aspect-ratio: var(--ar);
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-@media (max-aspect-ratio: 4/5) {
-  .stage {
-    --ar: 0.74;
-    --w: min(84vw, calc(56svh * 0.74), 430px);
-    --flap: 49%;
-    --meet: 46%;
-    --apex: 40%;
-    --seal: clamp(88px, calc(var(--w) * 0.3), 124px);
-  }
-}
-
-.rig,
-.card {
-  position: absolute;
-}
-
-.env-ground {
-  left: -6%;
-  right: -6%;
-  bottom: -12%;
-  height: 22%;
-  z-index: 0;
-  background: radial-gradient(ellipse at 50% 35%, rgba(35, 44, 25, 0.5), rgba(35, 44, 25, 0.18) 45%, transparent 70%);
-  filter: blur(6px);
-}
-
-/* Visible paper edge when the envelope is seen at an angle. */
-.env-thick {
-  inset: 0;
-  z-index: 0;
-  border-radius: 6px;
-  background: #2c3622;
-  transform: translateY(4px);
-  box-shadow: 0 30px 50px -18px rgba(25, 32, 18, 0.55);
-}
-
-.env-back {
-  inset: 0;
-  z-index: 1;
-  border-radius: 6px;
-  background: var(--grain), linear-gradient(180deg, #3b4730, #34402a);
-  background-size: 220px, auto;
-  background-blend-mode: soft-light, normal;
-  box-shadow: 0 10px 20px -6px rgba(30, 40, 20, 0.3);
-}
-
-.env-lining {
-  position: absolute;
-  inset: 3% 3% 16% 3%;
-  background: var(--lining), linear-gradient(180deg, var(--ivory), var(--sage));
-  background-size: 54px 54px, auto;
-  border-radius: 2px;
-  box-shadow: inset 0 0 0 1px rgba(198, 181, 138, 0.55), inset 0 10px 24px rgba(40, 50, 30, 0.12);
-}
-
-.env-shade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(20, 26, 14, 0.42) 0%, rgba(20, 26, 14, 0.1) 35%, transparent 60%);
-  opacity: 0;
-}
-
-/* ---------- Card ---------- */
-
-.card {
-  left: 4.5%;
-  right: 4.5%;
-  top: 4.5%;
-  height: 91%;
-  z-index: 3;
-  will-change: transform;
-}
-
-.card-paper {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: 3px;
-  background:
-    var(--grain),
-    radial-gradient(ellipse at 30% 18%, #ffffff, var(--ivory) 55%, #f0eee2);
-  background-size: 220px, auto;
-  background-blend-mode: soft-light, normal;
-  box-shadow:
-    0 1px 2px rgba(30, 40, 20, 0.25),
-    inset 0 0 0 1px rgba(198, 181, 138, 0.3),
-    inset 0 -2px 0 rgba(198, 181, 138, 0.25);
-}
-
-.card-shadow {
-  position: absolute;
-  inset: 0;
-  border-radius: 4px;
-  box-shadow:
-    0 50px 90px -24px rgba(18, 24, 12, 0.62),
-    0 22px 34px -14px rgba(18, 24, 12, 0.42);
-  opacity: 0;
-}
-
-.card-face {
-  position: absolute;
-  inset: 0;
-  container-type: size;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2.4cqmin;
-  text-align: center;
-}
-
-.card-arch {
-  position: absolute;
-  left: 50%;
-  top: 6%;
-  height: 88%;
-  width: auto;
-  aspect-ratio: 0.62;
-  max-width: 86%;
-  translate: -50% 0;
-}
-
-.card-arch path {
-  stroke: var(--champagne-deep);
-  stroke-width: 0.7;
-}
-
-.card-arch .arch-inner {
-  stroke: var(--olive-rich);
-  stroke-width: 0.4;
-  opacity: 0.55;
-}
-
-.card-arch .arch-key {
-  fill: var(--champagne-deep);
-}
-
-.card-crest {
-  width: 48cqmin;
-}
-
-.card-mono {
-  font-family: var(--font-display);
-  font-size: 20cqmin;
-  line-height: 1.05;
-  color: var(--olive-deep);
-}
-
-.card-sub {
-  font-family: var(--font-label);
-  font-size: 5.8cqmin;
-  color: var(--champagne-deep);
-}
-
-.card-band {
-  position: absolute;
-  bottom: 8%;
-  width: 40%;
-  color: var(--champagne);
-}
-
-/* ---------- Pocket (front folds) ---------- */
-
-.env-pocket {
-  inset: 0;
-  z-index: 4;
-  pointer-events: none;
-}
-
-.fold {
-  position: absolute;
-  inset: 0;
-  filter: drop-shadow(0 -0.5px 0.4px rgba(255, 255, 255, 0.16)) drop-shadow(0 2px 3px rgba(18, 24, 12, 0.34));
-}
-
-.fold i {
-  position: absolute;
-  inset: 0;
-  background-size: 220px, auto;
-  background-blend-mode: soft-light, normal;
-}
-
-.fold-left i {
-  clip-path: polygon(0 0, 54% var(--meet), 0 100%);
-  background-image: var(--grain), linear-gradient(98deg, #4d5c3d 0%, #465438 62%, #3e4a31 100%);
-  border-radius: 6px 0 0 6px;
-}
-
-.fold-right i {
-  clip-path: polygon(100% 0, 46% var(--meet), 100% 100%);
-  background-image: var(--grain), linear-gradient(262deg, #5b6b47 0%, #4f5e3f 62%, #46543a 100%);
-  border-radius: 0 6px 6px 0;
-}
-
-.fold-bottom i {
-  clip-path: polygon(0 100%, 50% var(--apex), 100% 100%);
-  background-image: var(--grain), linear-gradient(0deg, #48563a 0%, #536240 55%, #5e6e49 100%);
-  border-radius: 0 0 6px 6px;
-}
-
-/* Embossed champagne cross-stitch band along the bottom fold. */
-.foil-band {
-  position: absolute;
-  left: 22%;
-  right: 22%;
-  bottom: 8%;
-  color: #cdbd8f;
-  opacity: 0.85;
-  filter: drop-shadow(0 -0.5px 0 rgba(255, 255, 255, 0.25)) drop-shadow(0 0.7px 0.3px rgba(20, 26, 14, 0.7));
-}
-
-.foil-band .tatreez {
-  width: 100%;
-}
-
-.foil {
-  position: absolute;
-  pointer-events: none;
-  filter: drop-shadow(0 -0.5px 0 rgba(255, 255, 255, 0.25)) drop-shadow(0 0.6px 0.4px rgba(20, 26, 14, 0.6));
-}
-
-.foil .ob-sway {
-  animation: none;
-}
-
-.foil-a {
-  width: 30%;
-  left: 3%;
-  bottom: 13%;
-  rotate: -14deg;
-  opacity: 0.9;
-}
-
-.foil-b {
-  width: 20%;
-  right: 4%;
-  bottom: 14%;
-  rotate: 194deg;
-  scale: 1 -1;
-  opacity: 0.75;
-}
-
-@media (max-aspect-ratio: 4/5) {
-  .foil-a { width: 42%; bottom: 16%; }
-  .foil-b { width: 28%; bottom: 17%; }
-  .foil-band { left: 18%; right: 18%; bottom: 6%; }
-}
-
-.pocket-sheen {
-  position: absolute;
-  inset: 0;
-  clip-path: polygon(0 0, 54% var(--meet), 50% var(--apex), 46% var(--meet), 100% 0, 100% 100%, 0 100%);
-  background: linear-gradient(115deg, transparent 30%, rgba(255, 250, 230, 0.17) 45%, transparent 60%);
-  background-size: 250% 100%;
-  animation: sheen 7s ease-in-out infinite;
-}
-
-@keyframes sheen {
-  0%, 15% { background-position: 120% 0; }
-  65%, 100% { background-position: -40% 0; }
-}
-
-.flap-cast {
-  position: absolute;
-  inset: 0 0 auto;
-  height: 30%;
-  background: linear-gradient(180deg, rgba(18, 24, 12, 0.4), transparent);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
-  opacity: 0;
-}
-
-/* ---------- Flap ---------- */
-
-.env-flap-wrap {
-  top: 0;
-  left: 0;
-  right: 0;
-  height: var(--flap);
-  z-index: 5;
-  pointer-events: none;
-}
-
-.env-flap {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  transform-origin: 50% 0;
-}
-
-.flap-face {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-.flap-face i {
-  position: absolute;
-  inset: 0;
-}
-
-.flap-front {
-  filter: drop-shadow(0 2px 2px rgba(18, 24, 12, 0.38));
-}
-
-.flap-front i {
-  clip-path: polygon(0 0, 100% 0, 50.5% 99%, 49.5% 99%);
-  border-radius: 6px 6px 0 0;
-  background-image: var(--grain), linear-gradient(180deg, #5f6f48 0%, #4f5e3f 50%, #44523a 100%);
-  background-size: 220px, auto;
-  background-blend-mode: soft-light, normal;
-}
-
-.flap-foil {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.flap-foil polyline {
-  fill: none;
-  stroke: #cdbd8f;
-  stroke-width: 1;
-  opacity: 0.6;
-}
-
-.flap-back {
-  transform: rotateX(180deg);
-}
-
-.flap-back i {
-  clip-path: polygon(0 100%, 100% 100%, 50.5% 1%, 49.5% 1%);
-  background: #43503a;
-}
-
-.flap-back i::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  clip-path: polygon(5% 97%, 95% 97%, 50% 8%);
-  background: var(--lining), linear-gradient(0deg, var(--ivory), var(--sage));
-  background-size: 54px 54px, auto;
-}
-
-.flap-shadow {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  clip-path: polygon(-4% 0, 104% 0, 50% 110%);
-  background: rgba(18, 24, 12, 0.3);
-  filter: blur(6px);
-  transform: translateY(6px);
-}
-
 /* ---------- Wax seal ---------- */
 
 .seal {
+  --seal: clamp(108px, 30vmin, 156px);
   position: absolute;
-  z-index: 6;
+  z-index: 2;
   width: var(--seal);
   height: var(--seal);
   left: calc(50% - var(--seal) / 2);
-  top: calc(var(--flap) - var(--seal) * 0.62);
+  top: calc(50% - var(--seal) / 2);
   padding: 0;
   border: 0;
   border-radius: 50%;
   background: none;
-  filter: drop-shadow(0 6px 6px rgba(40, 30, 10, 0.45)) drop-shadow(0 1px 1px rgba(40, 30, 10, 0.45));
+  filter: drop-shadow(0 8px 8px rgba(20, 16, 6, 0.5)) drop-shadow(0 2px 2px rgba(20, 16, 6, 0.45));
   transition: filter 0.25s ease;
   touch-action: manipulation;
 }
@@ -630,19 +228,19 @@
 }
 
 .intro[data-phase='closed'] .seal:hover {
-  filter: drop-shadow(0 9px 10px rgba(40, 30, 10, 0.45)) drop-shadow(0 1px 1px rgba(40, 30, 10, 0.45)) brightness(1.05);
+  filter: drop-shadow(0 11px 12px rgba(20, 16, 6, 0.5)) drop-shadow(0 2px 2px rgba(20, 16, 6, 0.45)) brightness(1.05);
 }
 
 .seal:focus-visible {
   outline: 2px solid var(--ivory);
-  outline-offset: 5px;
+  outline-offset: 6px;
   border-radius: 50%;
 }
 
 .intro[data-phase='closed'] .seal::before {
   content: '';
   position: absolute;
-  inset: -7px;
+  inset: -8px;
   border-radius: 50%;
   border: 1.5px solid rgba(232, 222, 190, 0.85);
   animation: seal-ring 2.6s var(--ease-out) infinite;

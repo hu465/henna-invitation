@@ -11,7 +11,6 @@
   "dependencies": {
     "@fontsource/amiri": "^5.3.0",
     "@fontsource/aref-ruqaa": "^5.3.0",
-    "@fontsource/reem-kufi": "^5.3.0",
     "@gsap/react": "^2.1.2",
     "gsap": "^3.15.0",
     "qrcode": "^1.5.4",

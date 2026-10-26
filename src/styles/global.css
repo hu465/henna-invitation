@@ -3,9 +3,6 @@
 @import '@fontsource/amiri/latin-400.css';
 @import '@fontsource/aref-ruqaa/arabic-400.css';
 @import '@fontsource/aref-ruqaa/arabic-700.css';
-@import '@fontsource/reem-kufi/arabic-400.css';
-@import '@fontsource/reem-kufi/arabic-500.css';
-@import '@fontsource/reem-kufi/latin-400.css';
 
 :root {
   /* Brand palette */
@@ -27,7 +24,7 @@
 
   --font-display: 'Aref Ruqaa', 'Amiri', serif;
   --font-body: 'Amiri', 'Times New Roman', serif;
-  --font-label: 'Reem Kufi', 'Amiri', sans-serif;
+  --font-label: 'Amiri', 'Times New Roman', serif;
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --radius: 4px;
@@ -182,4 +179,14 @@ button {
 
 @media (prefers-reduced-motion: reduce) {
   .drift { display: none; }
+}
+
+/* Baked relief bitmaps fade in, like light catching embossed paper. */
+img.baked {
+  max-width: none;
+  animation: baked-in 0.6s ease-out both;
+}
+
+@keyframes baked-in {
+  from { opacity: 0; }
 }

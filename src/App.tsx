@@ -3,6 +3,7 @@ import { EnvelopeIntro, type Phase } from './intro/EnvelopeIntro'
 import { Invitation } from './invitation/Invitation'
 import { heroRevealTimeline, prepareHero } from './invitation/heroReveal'
 import { loadEvent } from './lib/store'
+import { ReliefDefs } from './art/Relief'
 
 // The planner is for the host only, so guests never download it.
 const Planner = lazy(() => import('./planner/Planner').then((m) => ({ default: m.Planner })))
@@ -68,6 +69,7 @@ function GuestInvitation() {
 
   return (
     <>
+      <ReliefDefs />
       <div inert={!open || undefined} aria-hidden={!open || undefined}>
         <Invitation ref={hero} event={event} ready={open} onReplay={replay} />
       </div>

@@ -49,3 +49,12 @@ export const defaultEvent: EventDetails = {
   // Replace with the final hosted link before printing or sharing the QR code.
   inviteUrl: 'https://claude.ai/artifact/2BC3DXVGzLFKnN6GNUFiDc',
 }
+
+/** The evening's programme shown under the curtains. Times are placeholders. */
+export const programme: { time: string; title: string; note?: string }[] = [
+  { time: '20:00', title: 'استقبال الضيوف', note: 'القهوة العربية والضيافة' },
+  { time: '20:45', title: 'زفّة العروس', note: 'على أنغام الزفّة الشامية' },
+  { time: '21:30', title: 'نقش الحنّة', note: 'طقوس الحنّة وأغانيها' },
+  { time: '22:15', title: 'العشاء' },
+  { time: '23:00', title: 'السهرة والدبكة' },
+]
