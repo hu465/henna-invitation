@@ -14,18 +14,21 @@ Motion principles reproduced:
 5. **Continuity of material**: the card scales until its ivory paper *is* the page, then the artwork and Arabic typography are drawn onto it.
 6. **Reading direction**: Arabic lines are revealed with a right-to-left wipe that follows the reading direction.
 
-## Emotional journey (≈9.6 s)
-| t (s) | Beat |
-|---|---|
-| 0.00 | Tap: the seal presses in, glows and springs back |
-| 0.32 | A hairline crack draws through the wax |
-| 0.60 | Wax splits into two halves that fall, with crumbs |
-| 0.72 | Flap swings 180° on its top hinge (CSS 3D, two-faced), revealing the olive lining |
-| 1.72 | Card slides out as the envelope settles downward |
-| 3.02 | Card travels forward: perspective arc (rotateX −14°→0), deeper shadow, backdrop dims |
-| 4.77 | Card expands to cover the screen and becomes the page |
-| 5.77 | Frame rules draw, the crest grows leaf by leaf, then seven lines of Arabic reveal in sequence |
-| ~9.6 | Scroll cue appears; page unlocks |
+## Opening state machine (one GSAP timeline, ≈6.9 s)
+Each phase is a label on the master timeline. `onPhase` reports it to the app, which mirrors it on
+`<html data-invite-phase="…">` for styling and tests.
+
+| t (s) | Phase | What happens |
+|---|---|---|
+| 0.00 | `closed` → `sealActivated` | The seal presses in, glows and springs back. A hairline crack draws through the wax (0.24 s), and at 0.42 s the two halves fall away with crumbs. |
+| 0.48 | `envelopeOpening` | The flap swings 180° on its top hinge (CSS 3D, two-faced: olive outside, ivory lining inside). At 90° its z-order passes behind the card, and the inside of the envelope darkens. |
+| 1.10 | `cardEmerging` | The card slides up out of the pocket while the envelope sinks (counter-motion). Once the card clears, it travels forward and up with a perspective arc and a deepening shadow while the room dims. |
+| 3.15 | (expand) | The card scales until its ivory paper *is* the page. |
+| 3.95 | `invitationRevealing` | The deep-olive frame opens from the centre, the arch draws, and the olive crest grows leaf by leaf. Arabic lines wipe in right-to-left. The heading «ليلة الحنّة» is traced as a stroke, then filled with ink. |
+| ≈6.85 | `invitationOpen` | Scroll unlocks, focus moves to the heading, and the scenes below come alive on scroll. |
+
+Skipping (button or `tl.progress(1)`), reduced motion (a 0.45 s cross-fade) and a 12 s failsafe all
+end in `invitationOpen` with scroll unlocked.
 
 ## Why not Three.js
 The `threejs` skill was evaluated. CSS 3D transforms already give a real hinge rotation,

@@ -19,6 +19,9 @@ const fields: { key: keyof EventDetails; label: string; type?: string; hint?: st
   { key: 'note', label: 'ملاحظة' },
   { key: 'rsvpDeadline', label: 'آخر موعد للرد', type: 'date' },
   { key: 'hostWhatsapp', label: 'رقم واتساب لاستقبال الردود', type: 'tel', hint: 'بالصيغة الدولية بدون + مثل 962790000000' },
+  { key: 'musicUrl', label: 'رابط ملف الموسيقى', type: 'url', hint: 'اتركيه فارغاً لاستخدام النغمة الهادئة المولّدة' },
+  { key: 'ambientVideo', label: 'رابط فيديو الخلفية', type: 'url', hint: 'اختياري: فيديو قصير صامت يتكرر خلف الدعوة' },
+  { key: 'ambientPoster', label: 'صورة بديلة للفيديو', type: 'url' },
 ]
 
 export function Planner() {

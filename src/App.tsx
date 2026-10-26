@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { EnvelopeIntro } from './intro/EnvelopeIntro'
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { EnvelopeIntro, type Phase } from './intro/EnvelopeIntro'
 import { Invitation } from './invitation/Invitation'
 import { heroRevealTimeline, prepareHero } from './invitation/heroReveal'
-import { Planner } from './planner/Planner'
 import { loadEvent } from './lib/store'
+
+// The planner is for the host only, so guests never download it.
+const Planner = lazy(() => import('./planner/Planner').then((m) => ({ default: m.Planner })))
 
 function useHashRoute() {
   const [hash, setHash] = useState(() => location.hash)
@@ -17,7 +19,12 @@ function useHashRoute() {
 
 export function App() {
   const hash = useHashRoute()
-  if (hash.startsWith('#/planner') || hash === '#planner') return <Planner />
+  if (hash.startsWith('#/planner') || hash === '#planner')
+    return (
+      <Suspense fallback={null}>
+        <Planner />
+      </Suspense>
+    )
   return <GuestInvitation />
 }
 
@@ -25,32 +32,46 @@ const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matc
 
 function GuestInvitation() {
   const [event] = useState(loadEvent)
-  // `?intro=0` skips the envelope (handy when sharing a direct link to RSVP).
-  const [introDone, setIntroDone] = useState(() => new URLSearchParams(location.search).get('intro') === '0')
+  // `?intro=0` skips the envelope (handy for a direct link to the RSVP).
+  const [phase, setPhase] = useState<Phase>(() => (new URLSearchParams(location.search).get('intro') === '0' ? 'invitationOpen' : 'closed'))
+  // Bumped on replay so the envelope remounts in its closed state.
+  const [run, setRun] = useState(0)
   const hero = useRef<HTMLElement>(null)
+  const open = phase === 'invitationOpen'
 
   useLayoutEffect(() => {
-    if (!introDone && hero.current && !reduced()) prepareHero(hero.current)
-  }, [introDone])
+    if (phase === 'closed' && hero.current && !reduced()) prepareHero(hero.current)
+  }, [phase, run])
+
+  // Expose the phase for testing and styling hooks.
+  useEffect(() => {
+    document.documentElement.dataset.invitePhase = phase
+  }, [phase])
 
   const buildHeroReveal = useCallback(() => (hero.current && !reduced() ? heroRevealTimeline(hero.current) : null), [])
 
-  const done = useCallback(() => {
-    setIntroDone(true)
-    requestAnimationFrame(() => hero.current?.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true }))
+  const onPhase = useCallback((p: Phase) => {
+    setPhase(p)
+    if (p === 'invitationOpen') requestAnimationFrame(() => hero.current?.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true }))
   }, [])
 
   const replay = useCallback(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })
-    setIntroDone(false)
+    setRun((r) => r + 1)
+    setPhase('closed')
   }, [])
+
+  // Development helper: replay from the console with __invite.replay().
+  useEffect(() => {
+    if (import.meta.env.DEV) Object.assign(window, { __invite: { replay } })
+  }, [replay])
 
   return (
     <>
-      <div inert={!introDone || undefined} aria-hidden={!introDone || undefined}>
-        <Invitation ref={hero} event={event} ready={introDone} onReplay={replay} />
+      <div inert={!open || undefined} aria-hidden={!open || undefined}>
+        <Invitation ref={hero} event={event} ready={open} onReplay={replay} />
       </div>
-      {!introDone && <EnvelopeIntro event={event} buildHeroReveal={buildHeroReveal} onDone={done} />}
+      {!open && <EnvelopeIntro key={run} event={event} phase={phase} onPhase={onPhase} buildHeroReveal={buildHeroReveal} />}
     </>
   )
 }

@@ -83,9 +83,14 @@ export function WaxSealArt({ monogram }: { monogram: string }) {
       <circle cx="60" cy="60" r="41" fill="none" stroke="#F3EAD0" strokeOpacity=".55" strokeWidth="1" transform="translate(.8 .8)" />
       <circle cx="60" cy="60" r="41" fill="none" stroke="#6F5F37" strokeOpacity=".7" strokeWidth="1.2" />
       <circle cx="60" cy="60" r="35" fill="none" stroke="#6F5F37" strokeOpacity=".45" strokeWidth=".6" strokeDasharray="1.5 2.5" />
+      <g filter={`url(#we${id})`} fill="none" stroke="#9A8653" strokeWidth="1.3" strokeLinejoin="round">
+        {/* Embossed eight-point star behind the monogram */}
+        <path d="M60 31 L89 60 L60 89 L31 60Z" />
+        <path d="M39.5 39.5 H80.5 V80.5 H39.5Z" />
+      </g>
+      <circle cx="60" cy="60" r="19" fill={`url(#wi${id})`} />
       <g filter={`url(#we${id})`} fill="#A28E5C">
-        <path d="M36 82 c 6 -2 12 -1 16 2 c -6 1 -11 1 -16 -2z M84 82 c -6 -2 -12 -1 -16 2 c 6 1 11 1 16 -2z" />
-        <text x="60" y="66" textAnchor="middle" fontFamily="'Aref Ruqaa', serif" fontSize="30" fontWeight="700" direction="rtl">
+        <text x="60" y={monogram.length > 1 ? 66 : 70} textAnchor="middle" fontFamily="'Aref Ruqaa', serif" fontSize={monogram.length > 1 ? 22 : 30} fontWeight="700" direction="rtl">
           {monogram}
         </text>
       </g>

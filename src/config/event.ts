@@ -18,21 +18,30 @@ export interface EventDetails {
   /** International format without "+" or spaces, e.g. 962790000000. Empty hides WhatsApp RSVP. */
   hostWhatsapp: string
   rsvpDeadline: string
+  /** Optional background music file (e.g. /media/zaffeh.mp3). Empty = gentle generated ambience. */
+  musicUrl: string
+  /** Optional looping atmosphere video for the hero (muted), with a poster image fallback. */
+  ambientVideo: string
+  ambientPoster: string
 }
 
 export const defaultEvent: EventDetails = {
-  brideName: 'سارة',
-  groomName: 'أحمد',
-  monogram: 'س أ',
+  // Placeholders — replace with the real details before sending.
+  brideName: 'اسم العروس',
+  groomName: 'اسم العريس',
+  monogram: 'ح',
   hostLine: 'تتشرّف عائلة العروس بدعوتكم',
   date: '2026-12-17',
   time: '20:00',
   endTime: '23:30',
-  venueName: 'قاعة الزيتونة',
-  venueAddress: 'عمّان — دابوق، شارع الملك حسين',
-  mapUrl: 'https://maps.google.com/?q=Amman',
+  venueName: 'اسم القاعة',
+  venueAddress: 'المدينة — العنوان التفصيلي',
+  mapUrl: '',
   dressCode: 'الثوب التراثي المطرّز أو الأخضر الزيتوني',
   note: 'السهرة للسيدات فقط',
   hostWhatsapp: '',
   rsvpDeadline: '2026-12-10',
+  musicUrl: '',
+  ambientVideo: '',
+  ambientPoster: '',
 }
