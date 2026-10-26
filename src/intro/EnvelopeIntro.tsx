@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, type KeyboardEvent } from 'rea
 import gsap from 'gsap'
 import type { EventDetails } from '../config/event'
 import { WaxSealArt } from '../art/Ornaments'
-import { Baked, BevelStroke, Sprig, pauseBaking } from '../art/Relief'
+import { Baked, BevelStroke, PaperFinish, Sprig, pauseBaking } from '../art/Relief'
 import { Drift } from '../art/Drift'
 import { SoundToggle } from '../audio/SoundToggle'
 import { ambience, soundPreferred } from '../audio/ambience'
@@ -41,6 +41,10 @@ function petalGeometry(side: Side, w: number, h: number): { pts: Pt[]; origin: s
   }
 }
 
+/** Darkening toward the free tip, used while a petal turns away from the light. */
+const shadeGradient = (side: Side) =>
+  `linear-gradient(${{ top: 180, bottom: 0, left: 90, right: 270 }[side]}deg, rgba(10,14,6,0.15), rgba(10,14,6,0.65))`
+
 const toPoly = (pts: Pt[]) => `polygon(${pts.map(([x, y]) => `${x}px ${y}px`).join(',')})`
 
 function Petal({ side, w, h, seed }: { side: Side; w: number; h: number; seed: number }) {
@@ -72,11 +76,17 @@ function Petal({ side, w, h, seed }: { side: Side; w: number; h: number; seed: n
               <polygon points={art.rim} />
             </clipPath>
           </defs>
-          {/* Cast shadow on the petals beneath, then the paper with a bevelled edge. */}
-          <polygon points={pts.map((p) => p.join(',')).join(' ')} fill="rgba(18,24,10,0.28)" transform="translate(2.5 4)" />
-          <polygon points={pts.map((p) => p.join(',')).join(' ')} fill="rgba(18,24,10,0.18)" transform="translate(1 1.6)" />
+          {/* Soft cast shadow on the petals beneath, then the paper with a bevelled edge. */}
+          <polygon points={pts.map((p) => p.join(',')).join(' ')} fill="rgba(14,18,8,0.55)" transform="translate(3 7)" filter="url(#soft-shadow)" />
+          <polygon points={pts.map((p) => p.join(',')).join(' ')} fill="rgba(14,18,8,0.3)" transform="translate(0.8 1.4)" />
           <BevelStroke d={`M${pts.map((p) => p.join(' ')).join(' L')}Z`} paper={PAPER} width={1.4} fill={PAPER} hi="rgba(244,236,210,0.32)" sh="rgba(20,26,12,0.5)" depth={0.9} />
           <BevelStroke d={`M${art.rim.replace(/ /g, ' L').replace(/,/g, ' ')}Z`} paper={PAPER} width={1.4} hi="rgba(244,236,210,0.28)" sh="rgba(20,26,12,0.45)" depth={0.8} />
+          <defs>
+            <clipPath id={`${clipId}-paper`}>
+              <polygon points={pts.map((p) => p.join(',')).join(' ')} />
+            </clipPath>
+          </defs>
+          <PaperFinish w={w} h={h} clip={`${clipId}-paper`} grain={1.1} />
           {/* Each petal carries its own leaves, kept inside its rim. */}
           <g clipPath={`url(#${clipId})`}>
           <g transform={`translate(${art.start[0]} ${art.start[1]}) rotate(${art.ang})`}>
@@ -86,6 +96,7 @@ function Petal({ side, w, h, seed }: { side: Side; w: number; h: number; seed: n
           </g>
           </g>
         </Baked>
+        <div className="petal-shade" style={{ clipPath: toPoly(pts), background: shadeGradient(side) }} />
       </div>
       <div className="petal-face petal-back" style={{ clipPath: toPoly(backPts) }} />
     </div>
@@ -148,9 +159,13 @@ export function EnvelopeIntro({ event, phase, onPhase, buildHeroReveal }: Props)
     // ── envelopeOpening: the four petals unfold on their hinges, top first. ──
       .addLabel('envelopeOpening', 'break+=0.04')
       .call(() => onPhase('envelopeOpening'), [], 'envelopeOpening')
+    // Each flap darkens as it turns edge-on to the light, then shows its lining.
     const unfold = (side: Side, prop: 'rotationX' | 'rotationY', to: number, at: number) =>
       t.to(q(`.petal--${side}`), { [prop]: to, duration: 0.95, ease: 'power2.inOut' }, `envelopeOpening+=${at}`)
+        .to(q(`.petal--${side} .petal-shade`), { keyframes: { opacity: [0, 0.85, 0] }, duration: 0.7, ease: 'none' }, `envelopeOpening+=${at}`)
         .to(q(`.petal--${side}`), { opacity: 0, duration: 0.3, ease: 'power1.in' }, `envelopeOpening+=${at + 0.62}`)
+    // A slow push-in, as if the camera leans toward the opening envelope.
+    t.to(q('.petals'), { scale: 1.07, duration: 1.6, ease: 'power1.inOut' }, 'envelopeOpening')
     unfold('top', 'rotationX', 172, 0)
     unfold('left', 'rotationY', -172, 0.3)
     unfold('right', 'rotationY', 172, 0.38)

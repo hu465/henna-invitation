@@ -25,6 +25,8 @@ export interface EventDetails {
   ambientPoster: string
   /** Link encoded in the QR code. Empty = the address the invitation is opened from. */
   inviteUrl: string
+  /** YouTube video id of the evening's song, shown in a player the guest starts herself. */
+  songYoutubeId: string
 }
 
 export const defaultEvent: EventDetails = {
@@ -48,6 +50,7 @@ export const defaultEvent: EventDetails = {
   ambientPoster: '',
   // Replace with the final hosted link before printing or sharing the QR code.
   inviteUrl: 'https://claude.ai/artifact/2BC3DXVGzLFKnN6GNUFiDc',
+  songYoutubeId: 'NzwqktLGlb0',
 }
 
 /** The evening's programme shown under the curtains. Times are placeholders. */

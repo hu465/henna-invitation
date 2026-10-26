@@ -5,6 +5,9 @@ import gsap from 'gsap'
 // adds this timeline to its master timeline at `cardEmerging`; the `writing`
 // label marks the start of `invitationRevealing`.
 
+const SHADOW_LOW = '0px 3px 8px -3px rgba(15,20,10,0.6), 0px 1px 2px 0px rgba(15,20,10,0.45)'
+const SHADOW_HIGH = '0px 36px 70px -18px rgba(15,20,10,0.62), 0px 12px 24px -8px rgba(15,20,10,0.45)'
+
 function parts(hero: HTMLElement) {
   const q = gsap.utils.selector(hero)
   return {
@@ -17,6 +20,7 @@ function parts(hero: HTMLElement) {
     ribbonL: q('.ribbon-l'),
     ribbonR: q('.ribbon-r'),
     ribbon: q('.ribbon'),
+    wrap: q('.ribbon-wrap'),
     lines: q('[data-reveal="line"]'),
     ink: q('.title-ink'),
     divider: q('.f-divider .draw'),
@@ -29,8 +33,9 @@ function parts(hero: HTMLElement) {
 /** Puts the card back inside the envelope, tied with its ribbon. */
 export function prepareHero(hero: HTMLElement) {
   const p = parts(hero)
-  gsap.set(p.face, { scale: 0.86, transformOrigin: '50% 50%' })
-  gsap.set([...p.loopL, ...p.loopR, ...p.tailL, ...p.tailR, ...p.knot, ...p.ribbonL, ...p.ribbonR], { clearProps: 'all' })
+  // Lying in the envelope the card casts a tight shadow; it grows as the card lifts.
+  gsap.set(p.face, { scale: 0.86, transformOrigin: '50% 50%', boxShadow: SHADOW_LOW })
+  gsap.set([...p.loopL, ...p.loopR, ...p.tailL, ...p.tailR, ...p.knot, ...p.ribbonL, ...p.ribbonR, ...p.wrap], { clearProps: 'all' })
   gsap.set(p.ribbon, { autoAlpha: 1 })
   // Arabic is never split into letters (that breaks the joins): each line is
   // revealed whole with a right-to-left wipe that follows the reading direction.
@@ -57,13 +62,14 @@ export function heroRevealTimeline(hero: HTMLElement) {
     .to(p.tailL, { y: 90, rotation: 22, opacity: 0, duration: 0.6, ease: 'power2.in', transformOrigin: '100% 0%' }, 'untie+=0.15')
     .to(p.tailR, { y: 96, rotation: -20, opacity: 0, duration: 0.6, ease: 'power2.in', transformOrigin: '0% 0%' }, 'untie+=0.18')
     .to(p.knot, { scale: 0, opacity: 0, duration: 0.25, ease: 'power2.in' }, 'untie+=0.35')
+    .to(p.wrap, { opacity: 0, duration: 0.3 }, 'untie+=0.9')
     .to(p.ribbonL, { x: -w * 1.05, y: 18, rotation: -3, duration: 0.85, ease: 'power3.in', transformOrigin: '100% 50%' }, 'untie+=0.32')
     .to(p.ribbonR, { x: w * 1.05, y: -14, rotation: 3, duration: 0.85, ease: 'power3.in', transformOrigin: '0% 50%' }, 'untie+=0.36')
     .set(p.ribbon, { autoAlpha: 0 }, 'untie+=1.25')
 
   // The card lifts out of the envelope until it fills the screen.
     .addLabel('lift', 'untie+=0.75')
-    .to(p.face, { scale: 1, duration: 0.9, ease: 'power3.inOut' }, 'lift')
+    .to(p.face, { scale: 1, boxShadow: SHADOW_HIGH, duration: 0.9, ease: 'power3.inOut' }, 'lift')
     .to(p.petals, { opacity: 1, duration: 1.2 }, 'lift+=0.5')
 
   // invitationRevealing: the writing appears line by line; the heading is inked.

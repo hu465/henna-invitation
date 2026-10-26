@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import type { EventDetails } from '../config/event'
-import { Baked, BevelStroke, CornerBouquet, cartouchePath } from '../art/Relief'
+import { Baked, BevelStroke, CornerBouquet, PaperFinish, cartouchePath } from '../art/Relief'
 import { Divider } from '../art/Ornaments'
 import { shortDate, timeLabel } from '../lib/format'
 import { useViewport } from '../lib/useViewport'
@@ -26,37 +26,93 @@ function Ribbon({ w, h }: { w: number; h: number }) {
   const cx = w / 2
   const t = Math.max(30, Math.min(w * 0.085, 48))
   const L = t * 2.6
+  const loop = (dir: 1 | -1) => `M0 0 C ${dir * L * 0.35} ${-L * 0.62} ${dir * L * 1.15} ${-L * 0.58} ${dir * L * 1.02} 0 C ${dir * L * 1.12} ${L * 0.5} ${dir * L * 0.35} ${L * 0.5} 0 0Z`
+  // The inside of the loop, seen through its opening: smaller and set toward the knot.
+  const hole = (dir: 1 | -1) => `M${dir * L * 0.22} ${-L * 0.04} C ${dir * L * 0.42} ${-L * 0.36} ${dir * L * 0.86} ${-L * 0.34} ${dir * L * 0.8} ${-L * 0.02} C ${dir * L * 0.84} ${L * 0.24} ${dir * L * 0.42} ${L * 0.26} ${dir * L * 0.22} ${-L * 0.04}Z`
+  const tailL = `M-4 6 L${-L * 0.55} ${L * 1.25} L${-L * 0.32} ${L * 1.12} L${-L * 0.3} ${L * 1.42} L6 10Z`
+  const tailR = `M4 6 L${L * 0.6} ${L * 1.2} L${L * 0.36} ${L * 1.1} L${L * 0.36} ${L * 1.4} L-6 10Z`
+  const band = (x: number, width: number) => (
+    <>
+      <rect x={x} y={cy - t / 2} width={width} height={t} fill={`url(#satin${id})`} />
+      <rect x={x} y={cy - t / 2} width={width} height={t} fill={`url(#sheen${id})`} />
+      <rect x={x} y={cy - t / 2} width={width} height={t} fill={`url(#weave${id})`} />
+    </>
+  )
   return (
     <svg className="ribbon" width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
       <defs>
+        {/* Across the width: the curve of a satin ribbon catching the light. */}
         <linearGradient id={`satin${id}`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#a8955f" />
-          <stop offset="0.16" stopColor="#efe5c6" />
-          <stop offset="0.34" stopColor="#cbb98b" />
-          <stop offset="0.56" stopColor="#e9dcb6" />
-          <stop offset="0.82" stopColor="#bfac7c" />
+          <stop offset="0.08" stopColor="#d3c397" />
+          <stop offset="0.3" stopColor="#ece2c3" />
+          <stop offset="0.55" stopColor="#ddcfa6" />
+          <stop offset="0.8" stopColor="#e6dab4" />
+          <stop offset="0.93" stopColor="#c6b485" />
+          <stop offset="1" stopColor="#a08c5b" />
+        </linearGradient>
+        {/* Along the length: soft travelling highlights. */}
+        <linearGradient id={`sheen${id}`} x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform={`scale(${w} 1)`}>
+          <stop offset="0" stopColor="#fff" stopOpacity="0" />
+          <stop offset="0.18" stopColor="#fff" stopOpacity="0.28" />
+          <stop offset="0.3" stopColor="#fff" stopOpacity="0" />
+          <stop offset="0.62" stopColor="#fff" stopOpacity="0" />
+          <stop offset="0.74" stopColor="#fff" stopOpacity="0.22" />
+          <stop offset="0.86" stopColor="#fff" stopOpacity="0" />
+        </linearGradient>
+        {/* The fine lengthwise weave of satin. */}
+        <pattern id={`weave${id}`} width="6" height="2" patternUnits="userSpaceOnUse">
+          <rect width="6" height="1" fill="#5c4d26" opacity="0.07" />
+        </pattern>
+        <linearGradient id={`loop${id}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#f6efd8" />
+          <stop offset="0.35" stopColor="#d6c597" />
+          <stop offset="0.62" stopColor="#ece0bc" />
           <stop offset="1" stopColor="#9c8857" />
         </linearGradient>
-        <linearGradient id={`loop${id}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#f1e8cb" />
-          <stop offset="0.45" stopColor="#c9b789" />
-          <stop offset="0.7" stopColor="#e6d9b2" />
-          <stop offset="1" stopColor="#a8955f" />
+        <radialGradient id={`inside${id}`} cx="0.5" cy="0.4" r="0.7">
+          <stop offset="0" stopColor="#7d6b41" />
+          <stop offset="1" stopColor="#7d6b41" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id={`wrap${id}`} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#3a2f14" stopOpacity="0.55" />
+          <stop offset="1" stopColor="#3a2f14" stopOpacity="0" />
         </linearGradient>
+        {/* The band wraps around the card's edges rather than running past them. */}
+        <clipPath id={`card${id}`}>
+          <rect width={w} height={h} />
+        </clipPath>
       </defs>
       <g transform={`rotate(-6 ${cx} ${cy})`}>
-        <g className="ribbon-l">
-          <rect x={-w * 0.3} y={cy - t / 2} width={cx + w * 0.3} height={t} fill={`url(#satin${id})`} />
+        <g clipPath={`url(#card${id})`}>
+          <g className="ribbon-l">{band(-w * 0.3, cx + w * 0.3)}</g>
+          <g className="ribbon-r">{band(cx, w * 0.8)}</g>
         </g>
-        <g className="ribbon-r">
-          <rect x={cx} y={cy - t / 2} width={w * 0.8} height={t} fill={`url(#satin${id})`} />
+        {/* Darkening where the band turns over the card's edge. */}
+        <g clipPath={`url(#card${id})`}>
+          <rect x="0" y={cy - t / 2} width="14" height={t} fill={`url(#wrap${id})`} className="ribbon-wrap" />
+          <rect x={w - 14} y={cy - t / 2} width="14" height={t} fill={`url(#wrap${id})`} transform={`rotate(180 ${w - 7} ${cy})`} className="ribbon-wrap" />
         </g>
         <g className="bow" transform={`translate(${cx} ${cy})`}>
-          <path className="bow-tail bow-tail--l" d={`M-4 6 L${-L * 0.55} ${L * 1.25} L${-L * 0.32} ${L * 1.12} L${-L * 0.3} ${L * 1.42} L6 10Z`} fill={`url(#loop${id})`} />
-          <path className="bow-tail bow-tail--r" d={`M4 6 L${L * 0.6} ${L * 1.2} L${L * 0.36} ${L * 1.1} L${L * 0.36} ${L * 1.4} L-6 10Z`} fill={`url(#loop${id})`} />
-          <path className="bow-loop bow-loop--l" d={`M0 0 C ${-L * 0.35} ${-L * 0.62} ${-L * 1.15} ${-L * 0.58} ${-L * 1.02} 0 C ${-L * 1.12} ${L * 0.5} ${-L * 0.35} ${L * 0.5} 0 0Z`} fill={`url(#loop${id})`} />
-          <path className="bow-loop bow-loop--r" d={`M0 0 C ${L * 0.35} ${-L * 0.62} ${L * 1.15} ${-L * 0.58} ${L * 1.02} 0 C ${L * 1.12} ${L * 0.5} ${L * 0.35} ${L * 0.5} 0 0Z`} fill={`url(#loop${id})`} />
-          <rect className="bow-knot" x={-t * 0.36} y={-t * 0.46} width={t * 0.72} height={t * 0.92} rx={t * 0.28} fill={`url(#satin${id})`} />
+          <g className="bow-tail bow-tail--l">
+            <path d={tailL} fill={`url(#loop${id})`} />
+            <path d={`M0 10 L${-L * 0.4} ${L * 1.18}`} stroke="#8f7c4e" strokeOpacity="0.45" strokeWidth="1" />
+          </g>
+          <g className="bow-tail bow-tail--r">
+            <path d={tailR} fill={`url(#loop${id})`} />
+            <path d={`M0 10 L${L * 0.46} ${L * 1.14}`} stroke="#8f7c4e" strokeOpacity="0.45" strokeWidth="1" />
+          </g>
+          {([-1, 1] as const).map((dir) => (
+            <g key={dir} className={`bow-loop bow-loop--${dir < 0 ? 'l' : 'r'}`}>
+              <path d={loop(dir)} fill={`url(#loop${id})`} />
+              <path d={hole(dir)} fill={`url(#inside${id})`} opacity="0.32" />
+              <path d={`M${dir * 4} ${-4} C ${dir * L * 0.35} ${-L * 0.56} ${dir * L * 1.05} ${-L * 0.54} ${dir * L * 0.98} ${-L * 0.08}`} fill="none" stroke="#fffaf0" strokeOpacity="0.6" strokeWidth="1.3" />
+            </g>
+          ))}
+          <g className="bow-knot">
+            <rect x={-t * 0.36} y={-t * 0.46} width={t * 0.72} height={t * 0.92} rx={t * 0.28} fill={`url(#satin${id})`} />
+            <path d={`M${-t * 0.18} ${-t * 0.4} q ${t * 0.08} ${t * 0.4} 0 ${t * 0.8} M${t * 0.16} ${-t * 0.4} q ${-t * 0.06} ${t * 0.4} 0 ${t * 0.8}`} fill="none" stroke="#7d6b41" strokeOpacity="0.45" strokeWidth="1" />
+          </g>
         </g>
       </g>
     </svg>
@@ -75,6 +131,7 @@ export function InvitationFace({ event }: { event: EventDetails }) {
     <div className="face">
       <Baked className="card-art" w={w} h={h} priority={1}>
         <rect width={w} height={h} fill={CARD_PAPER} />
+        <PaperFinish w={w} h={h} grain={0.45} light={0.6} />
         {/* Pressed panel: shade on the edge nearest the light, highlight opposite. */}
         <BevelStroke d={panel} paper={CARD_PAPER} width={1.2} hi="rgba(60,72,46,0.22)" sh="rgba(255,255,255,0.95)" depth={1} />
         {/* Raised rim. */}

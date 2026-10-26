@@ -14,6 +14,7 @@ import { Countdown } from './Countdown'
 import { Location } from './Location'
 import { Rsvp } from './Rsvp'
 import { InviteQr, QrActions } from './InviteQr'
+import { Song } from './Song'
 import { gregorianDate, hijriDate, timeLabel, weekday } from '../lib/format'
 import './invitation.css'
 
@@ -193,6 +194,17 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
           </Cameo>
         </div>
       </section>
+
+      {/* ── The evening's song ── */}
+      {event.songYoutubeId && (
+        <section id="song" className="scene scene--paper scene--song" data-scene aria-labelledby="song-title">
+          <div className="scene-inner">
+            <p className="eyebrow" data-rise>على أنغامها نحتفل</p>
+            <h2 id="song-title" className="scene-title script" data-wipe>أغنية الليلة</h2>
+            <Song event={event} />
+          </div>
+        </section>
+      )}
 
       {/* ── Location: an engraving of the venue ── */}
       <section id="location" className="scene scene--paper" data-scene aria-labelledby="location-title">

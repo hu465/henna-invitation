@@ -53,6 +53,15 @@
 }
 
 /* Inside of each petal: ivory lining with a fine olive sprig print. */
+.petal-shade {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  pointer-events: none;
+}
+
 .petal-back {
   background:
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><g fill='%2366764A' fill-opacity='.22'><path d='M12 44 C 20 34 30 28 42 22' stroke='%2366764A' stroke-opacity='.3' fill='none'/><path d='M20 36 c -1 -6 3 -10 7 -12 c 1 5 -2 9 -7 12z'/><path d='M29 30 c -1 -6 3 -9 7 -11 c 1 5 -2 8 -7 11z'/><path d='M22 38 c 5 -2 9 0 11 3 c -5 2 -9 0 -11 -3z'/></g></svg>"),

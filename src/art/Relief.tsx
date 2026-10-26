@@ -21,6 +21,20 @@ export function ReliefDefs() {
         <Bevel id="emboss-olive" depth={1.6} blur={1.8} hi="#f4ecd2" hiA={0.42} sh="#1d2414" shA={0.62} cast={0.35} />
         {/* Pressed into the paper (debossed lines and panels). */}
         <Bevel id="deboss" depth={-1.1} blur={1.2} hi="#ffffff" hiA={0.9} sh="#465438" shA={0.35} cast={0} />
+        {/* Paper finish: fine speckle and long cotton fibres, as a translucent veil. */}
+        <filter id="grain" x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3" stitchTiles="stitch" />
+          <feColorMatrix values="0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0 0.45  1.4 0 0 0 -0.62" />
+        </filter>
+        {/* Cloudy formation of cotton paper: soft light and dark mottling. */}
+        <filter id="fibres" x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="3" seed="11" />
+          <feColorMatrix values="0 0 0 0 0.5  0 0 0 0 0.5  0 0 0 0 0.46  0.9 0 0 0 -0.38" />
+        </filter>
+        {/* Soft, blurred cast shadow. */}
+        <filter id="soft-shadow" x="-10%" y="-10%" width="120%" height="120%">
+          <feGaussianBlur stdDeviation="7" />
+        </filter>
         {/* Satin / mother-of-pearl surface. */}
         <filter id="satin" x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
           <feTurbulence type="fractalNoise" baseFrequency="0.004 0.016" numOctaves="2" seed="7" result="n" />
@@ -217,6 +231,33 @@ export function BevelStroke({ d, paper, width, hi = 'rgba(255,255,255,0.9)', sh 
       <path d={d} stroke={sh} strokeWidth={width} transform={`translate(${depth} ${depth * 1.4})`} />
       <path d={d} stroke={hi} strokeWidth={width} transform={`translate(${-depth} ${-depth})`} />
       <path d={d} stroke={paper} strokeWidth={width} fill={fill} />
+    </g>
+  )
+}
+
+/**
+ * Real paper finish over a surface: grain, fibres and directional light
+ * (brighter toward the top-left light, falling off toward the bottom-right).
+ */
+export function PaperFinish({ w, h, clip, grain = 1, light = 1 }: { w: number; h: number; clip?: string; grain?: number; light?: number }) {
+  const id = `pf${Math.round(w)}x${Math.round(h)}${clip ? clip.replace(/[^a-z0-9]/gi, '') : ''}`
+  return (
+    <g clipPath={clip ? `url(#${clip})` : undefined}>
+      <defs>
+        <linearGradient id={`${id}l`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#fffbe8" stopOpacity={0.16 * light} />
+          <stop offset="0.45" stopColor="#fffbe8" stopOpacity="0" />
+          <stop offset="1" stopColor="#141a0c" stopOpacity={0.2 * light} />
+        </linearGradient>
+        <radialGradient id={`${id}v`} cx="0.5" cy="0.45" r="0.75">
+          <stop offset="0.6" stopColor="#141a0c" stopOpacity="0" />
+          <stop offset="1" stopColor="#141a0c" stopOpacity={0.14 * light} />
+        </radialGradient>
+      </defs>
+      <rect width={w} height={h} filter="url(#fibres)" opacity={0.28 * grain} />
+      <rect width={w} height={h} filter="url(#grain)" opacity={0.55 * grain} />
+      <rect width={w} height={h} fill={`url(#${id}l)`} />
+      <rect width={w} height={h} fill={`url(#${id}v)`} />
     </g>
   )
 }

@@ -49,52 +49,59 @@ function waxBlob(seed: number) {
   return `M${pts.join(' L')}Z`
 }
 
-/** Champagne wax seal with an embossed Arabic monogram. */
+/**
+ * Champagne wax seal, lit like the real thing. The artwork is drawn as a
+ * height map in greys (pooled rim high, stamped plateau lower, the stamp's
+ * design raised again) and a lighting filter turns it into glossy, mottled
+ * wax with highlights that follow the relief.
+ */
 export function WaxSealArt({ monogram }: { monogram: string }) {
   const id = useId().replace(/:/g, '')
   const blob = useMemo(() => waxBlob(2.3), [])
+  const two = monogram.length > 1
   return (
     <svg className="wax-art" viewBox="0 0 120 120" aria-hidden="true">
       <defs>
-        <radialGradient id={`wx${id}`} cx="0.38" cy="0.32" r="0.75">
-          <stop offset="0" stopColor="#EADFBE" />
-          <stop offset="0.45" stopColor="#C6B58A" />
-          <stop offset="0.85" stopColor="#9C8857" />
-          <stop offset="1" stopColor="#7D6B41" />
+        <radialGradient id={`wh${id}`} cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor="#cfcfcf" />
+          <stop offset="0.7" stopColor="#d9d9d9" />
+          <stop offset="0.83" stopColor="#ffffff" />
+          <stop offset="0.94" stopColor="#bdbdbd" />
+          <stop offset="1" stopColor="#5a5a5a" />
         </radialGradient>
-        <radialGradient id={`wi${id}`} cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0.7" stopColor="#B8A675" />
-          <stop offset="1" stopColor="#A08C5B" />
-        </radialGradient>
-        <filter id={`we${id}`} x="-10%" y="-10%" width="120%" height="120%">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="1.1" result="b" />
-          <feOffset dx="-0.8" dy="-0.8" result="o1" />
-          <feComposite in="o1" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="hi" />
-          <feFlood floodColor="#5E4F2C" floodOpacity=".75" />
-          <feComposite in2="hi" operator="in" result="shade" />
-          <feMerge>
-            <feMergeNode in="SourceGraphic" />
-            <feMergeNode in="shade" />
-          </feMerge>
+        <filter id={`wx${id}`} x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
+          <feColorMatrix in="SourceGraphic" type="luminanceToAlpha" result="h" />
+          <feGaussianBlur in="h" stdDeviation="1.3" result="hb" />
+          <feDiffuseLighting in="hb" surfaceScale="7" diffuseConstant="1.15" lightingColor="#ffffff" result="diff">
+            <feDistantLight azimuth="225" elevation="48" />
+          </feDiffuseLighting>
+          <feSpecularLighting in="hb" surfaceScale="7" specularConstant="1.1" specularExponent="26" lightingColor="#fff6dc" result="spec">
+            <fePointLight x="28" y="18" z="95" />
+          </feSpecularLighting>
+          {/* Mottled champagne wax. */}
+          <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" seed="4" result="n" />
+          <feColorMatrix in="n" values="0.14 0 0 0 0.71  0 0.13 0 0 0.635  0 0 0.12 0 0.48  0 0 0 0 1" result="base" />
+          <feComposite in="base" in2="diff" operator="arithmetic" k1="1.3" result="lit" />
+          <feComposite in="spec" in2="lit" operator="arithmetic" k2="0.6" k3="1" result="shiny" />
+          <feComposite in="shiny" in2="SourceAlpha" operator="in" />
         </filter>
       </defs>
-      <path d={blob} fill={`url(#wx${id})`} />
-      <circle cx="60" cy="60" r="41" fill={`url(#wi${id})`} />
-      <circle cx="60" cy="60" r="41" fill="none" stroke="#F3EAD0" strokeOpacity=".55" strokeWidth="1" transform="translate(.8 .8)" />
-      <circle cx="60" cy="60" r="41" fill="none" stroke="#6F5F37" strokeOpacity=".7" strokeWidth="1.2" />
-      <circle cx="60" cy="60" r="35" fill="none" stroke="#6F5F37" strokeOpacity=".45" strokeWidth=".6" strokeDasharray="1.5 2.5" />
-      <g filter={`url(#we${id})`} fill="none" stroke="#9A8653" strokeWidth="1.3" strokeLinejoin="round">
-        {/* Embossed eight-point star behind the monogram */}
-        <path d="M60 31 L89 60 L60 89 L31 60Z" />
-        <path d="M39.5 39.5 H80.5 V80.5 H39.5Z" />
-      </g>
-      <circle cx="60" cy="60" r="19" fill={`url(#wi${id})`} />
-      <g filter={`url(#we${id})`} fill="#A28E5C">
-        <text x="60" y={monogram.length > 1 ? 66 : 70} textAnchor="middle" fontFamily="'Aref Ruqaa', serif" fontSize={monogram.length > 1 ? 22 : 30} fontWeight="700" direction="rtl">
+      <g filter={`url(#wx${id})`}>
+        <path d={blob} fill={`url(#wh${id})`} />
+        {/* The stamped plateau and the stamp's edge. */}
+        <circle cx="60" cy="60" r="40" fill="#a9a9a9" />
+        <circle cx="60" cy="60" r="40" fill="none" stroke="#e6e6e6" strokeWidth="2.2" />
+        <circle cx="60" cy="60" r="34.5" fill="none" stroke="#d2d2d2" strokeWidth="0.9" strokeDasharray="1.6 2.4" />
+        {/* Raised eight-point star and monogram. */}
+        <g fill="none" stroke="#f2f2f2" strokeWidth="1.8" strokeLinejoin="round">
+          <path d="M60 31 L89 60 L60 89 L31 60Z" />
+          <path d="M39.5 39.5 H80.5 V80.5 H39.5Z" />
+        </g>
+        <circle cx="60" cy="60" r="18.5" fill="#a9a9a9" />
+        <text x="60" y={two ? 66 : 70} textAnchor="middle" fontFamily="'Aref Ruqaa', serif" fontSize={two ? 22 : 30} fontWeight="700" direction="rtl" fill="#f5f5f5">
           {monogram}
         </text>
       </g>
-      <ellipse cx="44" cy="36" rx="14" ry="7" fill="#fff" opacity=".22" transform="rotate(-30 44 36)" />
     </svg>
   )
 }

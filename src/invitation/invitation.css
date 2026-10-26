@@ -714,6 +714,94 @@
   filter: drop-shadow(0 4px 4px rgba(40, 30, 10, 0.35));
 }
 
+/* ---------- Song ---------- */
+
+.song {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* An ivory mat with a double keyline, like a framed print. */
+.song-frame {
+  width: min(100%, 560px);
+  aspect-ratio: 16 / 9;
+  padding: 10px;
+  background: var(--paper);
+  box-shadow:
+    0 0 0 1px rgba(198, 181, 138, 0.8),
+    0 0 0 6px var(--paper),
+    0 0 0 7px rgba(70, 84, 56, 0.35),
+    0 26px 50px -26px rgba(47, 58, 37, 0.6);
+}
+
+.song-cover,
+.song-player {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.song-cover {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+  color: var(--ivory);
+  background: radial-gradient(ellipse at 35% 25%, #6f7f52, #56653f 55%, #3f4b2f);
+}
+
+.song-relief {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.song-play {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 66px;
+  height: 66px;
+  translate: -50% -50%;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--olive-deep);
+  background: radial-gradient(circle at 35% 30%, #f3ebd2, #c6b58a 70%, #a8955f);
+  box-shadow: 0 8px 18px -6px rgba(20, 16, 6, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  transition: transform 0.25s var(--ease-out);
+}
+
+.song-play svg {
+  width: 28px;
+  margin-inline-start: 4px;
+}
+
+.song-cover:hover .song-play {
+  transform: scale(1.06);
+}
+
+.song-hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 14%;
+  color: #e2d6b0;
+  font-size: 1.05rem;
+}
+
+.song-link {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--olive-rich);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
 /* ---------- RSVP ---------- */
 
 .scene--rsvp .scene-inner {
