@@ -152,7 +152,7 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
     <main ref={main} className="invitation" id="invitation">
       {/* ── The card inside the envelope ── */}
       <section ref={heroRef} className="hero" aria-label="الدعوة">
-        <div className="hero-bed" aria-hidden="true"><Satin color="#56653f" priority={2} /></div>
+        <div className="hero-bed" aria-hidden="true"><Satin color="#47542f" priority={2} /></div>
         <InvitationFace event={event} />
         <div className="hero-petals" aria-hidden="true"><Drift kind="petal" count={8} seed={21} /></div>
         <a className="scroll-cue" href="#countdown">
@@ -172,7 +172,7 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
           <h2 id="countdown-title" className="scene-title" data-wipe>العدّ التنازلي</h2>
         </div>
         <div className="cd-band">
-          <Satin color="#465438" />
+          <Satin color="#3a4529" />
           <div className="cd-plaque" data-rise>
             <Countdown event={event} />
           </div>
@@ -261,7 +261,7 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
 
       {/* ── RSVP on satin ── */}
       <section id="rsvp" className="scene scene--satin scene--rsvp" data-scene aria-labelledby="rsvp-title">
-        <Satin color="#56653f" />
+        <Satin color="#47542f" />
         <div className="scene-inner">
           <p className="eyebrow eyebrow--light" data-rise>تأكيد الحضور</p>
           <h2 id="rsvp-title" className="scene-title scene-title--light" data-wipe>يسعدنا أن نعرف بحضوركِ</h2>

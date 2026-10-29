@@ -755,7 +755,7 @@
   padding: 0;
   overflow: hidden;
   color: var(--ivory);
-  background: radial-gradient(ellipse at 35% 25%, #6f7f52, #56653f 55%, #3f4b2f);
+  background: radial-gradient(ellipse at 35% 25%, #5f6e45, #47542f 55%, #343f27);
 }
 
 .song-relief {

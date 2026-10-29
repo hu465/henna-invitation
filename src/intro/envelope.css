@@ -68,7 +68,7 @@
 
 /* Plain olive paper only until the relief is baked, and never once opening. */
 .petals {
-  background: #5d6d44;
+  background: #4e5c39;
 }
 
 .petals:has(.petal-front img),

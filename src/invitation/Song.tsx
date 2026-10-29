@@ -33,8 +33,8 @@ export function Song({ event }: { event: EventDetails }) {
         ) : (
           <button type="button" className="song-cover" onClick={start} aria-label="تشغيل أغنية الليلة">
             <svg className="song-relief" viewBox="0 0 320 180" aria-hidden="true">
-              <Sprig length={120} leaves={9} seed={4} fill="#5d6d44" filter="url(#emboss-olive)" transform="translate(160 150) rotate(-158)" />
-              <Sprig length={120} leaves={9} seed={9} fill="#5d6d44" filter="url(#emboss-olive)" transform="translate(160 150) rotate(-22)" />
+              <Sprig length={120} leaves={9} seed={4} fill="#4e5c39" filter="url(#emboss-olive)" transform="translate(160 150) rotate(-158)" />
+              <Sprig length={120} leaves={9} seed={9} fill="#4e5c39" filter="url(#emboss-olive)" transform="translate(160 150) rotate(-22)" />
             </svg>
             <span className="song-play" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="currentColor" /></svg>

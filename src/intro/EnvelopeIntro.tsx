@@ -25,7 +25,7 @@ interface Props {
 type Side = 'top' | 'left' | 'right' | 'bottom'
 type Pt = [number, number]
 
-const PAPER = '#5d6d44'
+const PAPER = '#4e5c39'
 const CRUMBS = 9
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 

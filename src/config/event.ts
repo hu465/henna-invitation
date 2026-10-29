@@ -30,12 +30,11 @@ export interface EventDetails {
 }
 
 export const defaultEvent: EventDetails = {
-  // The date is still a placeholder — replace it before sending.
   brideName: 'سارة عمر يونس',
   groomName: '',
   monogram: 'س',
   hostLine: 'تتشرّف عائلة العروس بدعوتكم',
-  date: '2026-12-17',
+  date: '2026-11-06',
   time: '17:00',
   endTime: '',
   venueName: 'فندق ريجنسي بالاس',
@@ -44,7 +43,7 @@ export const defaultEvent: EventDetails = {
   dressCode: 'الثوب',
   note: 'نعتذر عن اصطحاب الأطفال',
   hostWhatsapp: '',
-  rsvpDeadline: '2026-12-10',
+  rsvpDeadline: '2026-11-03',
   musicUrl: '',
   ambientVideo: '',
   ambientPoster: '',
