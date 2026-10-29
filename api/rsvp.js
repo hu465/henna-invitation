@@ -4,32 +4,68 @@
 // GET  /api/rsvp            every reply (host only: x-admin-key header)
 // DELETE /api/rsvp?id=…     remove one reply (host only)
 //
-// Replies live in one Redis hash, reached over Upstash's REST API, so no
-// packages are needed. Vercel's Upstash integration sets KV_REST_API_URL and
-// KV_REST_API_TOKEN (or the UPSTASH_REDIS_REST_* pair); ADMIN_KEY is the
-// password the host types on the planner page.
+// Replies live in one Redis hash. Vercel's Redis integrations name their
+// settings differently (and may add a custom prefix), so the connection is
+// found by pattern: an Upstash REST URL + token pair (KV_REST_API_URL /
+// KV_REST_API_TOKEN, UPSTASH_REDIS_REST_URL / _TOKEN) is used over HTTP;
+// otherwise a redis:// URL (REDIS_URL, KV_URL, ...) is used over TCP.
+// ADMIN_KEY is the password the host types on the planner page.
+
+import { createClient } from 'redis'
 
 const KEY = 'henna:rsvps'
 const MAX_REPLIES = 3000
 
-const redisUrl = () => process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL
-const redisToken = () => process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
+const envEnding = (...suffixes) => {
+  for (const suffix of suffixes) {
+    const name = Object.keys(process.env).find((k) => k.endsWith(suffix) && process.env[k])
+    if (name) return process.env[name]
+  }
+  return ''
+}
+
+function connection() {
+  const restUrl = envEnding('KV_REST_API_URL', 'REDIS_REST_URL')
+  const restToken = envEnding('KV_REST_API_TOKEN', 'REDIS_REST_TOKEN')
+  if (restUrl && restToken) return { kind: 'rest', url: restUrl, token: restToken }
+  const url = envEnding('REDIS_URL', 'KV_URL')
+  if (/^rediss?:\/\//.test(url)) return { kind: 'tcp', url }
+  return null
+}
+
+let tcp = null
 
 async function redis(...command) {
-  const res = await fetch(redisUrl(), {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${redisToken()}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(command),
-  })
-  const body = await res.json()
-  if (!res.ok || body.error) throw new Error(body.error || `redis ${res.status}`)
-  return body.result
+  const conn = connection()
+  if (conn.kind === 'rest') {
+    const res = await fetch(conn.url, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${conn.token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(command),
+    })
+    const body = await res.json()
+    if (!res.ok || body.error) throw new Error(body.error || `redis ${res.status}`)
+    return body.result
+  }
+  // One client per function instance, reused across requests.
+  if (!tcp) {
+    const client = createClient({ url: conn.url, socket: { connectTimeout: 5000, reconnectStrategy: false } })
+    client.on('error', () => {
+      tcp = null
+    })
+    tcp = client.connect().then(() => client)
+    tcp.catch(() => {
+      tcp = null
+    })
+  }
+  const client = await tcp
+  return client.sendCommand(command.map(String))
 }
 
 const json = (data, status = 200) => Response.json(data, { status, headers: { 'Cache-Control': 'no-store' } })
 
 function configured() {
-  return Boolean(redisUrl() && redisToken())
+  return connection() !== null
 }
 
 function isHost(request) {
@@ -69,6 +105,7 @@ export async function POST(request) {
 
 export async function GET(request) {
   if (!configured()) return json({ error: 'not_configured' }, 503)
+  if (!process.env.ADMIN_KEY) return json({ error: 'no_admin_key' }, 503)
   if (!isHost(request)) return json({ error: 'unauthorized' }, 401)
   try {
     const flat = (await redis('HGETALL', KEY)) || []

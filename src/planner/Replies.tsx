@@ -27,6 +27,13 @@ const storeKey = (key: string) => {
 
 type Status = 'idle' | 'loading' | 'ready' | 'unauthorized' | 'unavailable'
 
+// What the host should fix, by the server's error code.
+const problems: Record<string, string> = {
+  not_configured: 'قاعدة البيانات غير مربوطة بالموقع. من Vercel افتحي Storage واربطي قاعدة Redis بالمشروع، ثم أعيدي النشر (Redeploy).',
+  no_admin_key: 'لم تُضبط كلمة السر بعد. أضيفي ADMIN_KEY في Settings → Environment Variables ثم أعيدي النشر (Redeploy).',
+  storage: 'قاعدة البيانات لا تستجيب. تأكّدي من أنها مربوطة بالمشروع ثم أعيدي النشر.',
+}
+
 function toCsv(replies: Rsvp[]) {
   const cell = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`
   const rows = replies.map((r) => [r.name, r.attending ? 'نعم' : 'لا', r.guests, r.message, new Date(r.createdAt).toLocaleString('ar')].map(cell).join(','))
@@ -39,6 +46,7 @@ export function Replies() {
   const [draft, setDraft] = useState('')
   const [status, setStatus] = useState<Status>('idle')
   const [replies, setReplies] = useState<Rsvp[]>([])
+  const [problem, setProblem] = useState('')
 
   const load = useCallback(async (k: string) => {
     setStatus('loading')
@@ -49,10 +57,15 @@ export function Replies() {
         setKey('')
         return setStatus('unauthorized')
       }
-      if (!res.ok) return setStatus('unavailable')
+      if (!res.ok) {
+        const code = (await res.json().catch(() => ({}))).error as string | undefined
+        setProblem((code && problems[code]) || '')
+        return setStatus('unavailable')
+      }
       setReplies((await res.json()).replies)
       setStatus('ready')
     } catch {
+      setProblem('')
       setStatus('unavailable')
     }
   }, [])
@@ -98,7 +111,7 @@ export function Replies() {
   if (status === 'unavailable')
     return (
       <p className="panel-note">
-        تعذّر الوصول إلى الردود. تعمل هذه الصفحة على موقع Vercel بعد ربط قاعدة البيانات.{' '}
+        {problem || 'تعذّر الوصول إلى الردود. تعمل هذه الصفحة على موقع Vercel بعد ربط قاعدة البيانات.'}{' '}
         <button type="button" className="btn btn--text" onClick={() => load(key)}>إعادة المحاولة</button>
       </p>
     )
