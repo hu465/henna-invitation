@@ -14,7 +14,6 @@ import { Countdown } from './Countdown'
 import { Location } from './Location'
 import { Rsvp } from './Rsvp'
 import { InviteQr, QrActions } from './InviteQr'
-import { Song } from './Song'
 import { gregorianDate, hijriDate, timeLabel, weekday } from '../lib/format'
 import './invitation.css'
 
@@ -195,17 +194,6 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
         </div>
       </section>
 
-      {/* ── The evening's song ── */}
-      {event.songYoutubeId && (
-        <section id="song" className="scene scene--paper scene--song" data-scene aria-labelledby="song-title">
-          <div className="scene-inner">
-            <p className="eyebrow" data-rise>على أنغامها نحتفل</p>
-            <h2 id="song-title" className="scene-title script" data-wipe>أغنية الليلة</h2>
-            <Song event={event} />
-          </div>
-        </section>
-      )}
-
       {/* ── Location: an engraving of the venue ── */}
       <section id="location" className="scene scene--paper" data-scene aria-labelledby="location-title">
         <div className="scene-inner">
@@ -239,6 +227,7 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
               </li>
             ))}
           </ol>
+          {event.note && <p className="programme-note" data-rise>{event.note}</p>}
         </div>
       </section>
 
@@ -253,7 +242,7 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
             <p className="eyebrow">اللباس</p>
             <h2 id="dress-title" className="dress-title" data-wipe>{event.dressCode}</h2>
             <ThobeEngraving className="thobe-art" />
-            {event.note && <p className="dress-note">{event.note}</p>}
+            {event.dressNote && <p className="dress-note">{event.dressNote}</p>}
           </div>
           <span className="dress-seal" aria-hidden="true"><WaxSealArt monogram={event.monogram} /></span>
         </div>

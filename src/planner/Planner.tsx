@@ -18,6 +18,7 @@ const fields: { key: keyof EventDetails; label: string; type?: string; hint?: st
   { key: 'venueAddress', label: 'العنوان' },
   { key: 'mapUrl', label: 'رابط الخريطة', type: 'url' },
   { key: 'dressCode', label: 'اللباس' },
+  { key: 'dressNote', label: 'وصف اللباس' },
   { key: 'note', label: 'ملاحظة' },
   { key: 'rsvpDeadline', label: 'آخر موعد للرد', type: 'date' },
   { key: 'hostWhatsapp', label: 'رقم واتساب لاستقبال الردود', type: 'tel', hint: 'بالصيغة الدولية بدون + مثل 962790000000' },
@@ -25,7 +26,6 @@ const fields: { key: keyof EventDetails; label: string; type?: string; hint?: st
   { key: 'ambientVideo', label: 'رابط فيديو الخلفية', type: 'url', hint: 'اختياري: فيديو قصير صامت يتكرر خلف الدعوة' },
   { key: 'ambientPoster', label: 'صورة بديلة للفيديو', type: 'url' },
   { key: 'inviteUrl', label: 'رابط الدعوة (لرمز QR)', type: 'url', hint: 'الرابط الذي يفتحه رمز QR' },
-  { key: 'songYoutubeId', label: 'رمز أغنية YouTube', hint: 'الجزء بعد youtu.be/ في رابط الأغنية' },
 ]
 
 export function Planner() {

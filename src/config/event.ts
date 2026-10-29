@@ -14,6 +14,8 @@ export interface EventDetails {
   venueAddress: string
   mapUrl: string
   dressCode: string
+  /** A line describing the dress, shown under it. */
+  dressNote: string
   note: string
   /** International format without "+" or spaces, e.g. 962790000000. Empty hides WhatsApp RSVP. */
   hostWhatsapp: string
@@ -25,8 +27,6 @@ export interface EventDetails {
   ambientPoster: string
   /** Link encoded in the QR code. Empty = the address the invitation is opened from. */
   inviteUrl: string
-  /** YouTube video id of the evening's song, shown in a player the guest starts herself. */
-  songYoutubeId: string
 }
 
 export const defaultEvent: EventDetails = {
@@ -41,6 +41,7 @@ export const defaultEvent: EventDetails = {
   venueAddress: 'عمّان — الشميساني، شارع الملكة نور',
   mapUrl: 'https://www.google.com/maps/search/?api=1&query=Regency+Palace+Hotel+Amman',
   dressCode: 'الثوب',
+  dressNote: 'يسعدنا أن تشاركينا الفرحة بالثوب التراثي المطرّز، باللون والتطريز الذي تحبّينه',
   note: 'نعتذر عن اصطحاب الأطفال',
   hostWhatsapp: '',
   rsvpDeadline: '2026-11-03',
@@ -49,7 +50,6 @@ export const defaultEvent: EventDetails = {
   ambientPoster: '',
   // Replace with the final hosted link before printing or sharing the QR code.
   inviteUrl: 'https://claude.ai/artifact/2BC3DXVGzLFKnN6GNUFiDc',
-  songYoutubeId: 'NzwqktLGlb0',
 }
 
 /** The evening's programme shown under the curtains. */
