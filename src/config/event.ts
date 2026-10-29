@@ -49,7 +49,7 @@ export const defaultEvent: EventDetails = {
   ambientVideo: '',
   ambientPoster: '',
   // Replace with the final hosted link before printing or sharing the QR code.
-  inviteUrl: 'https://claude.ai/artifact/2BC3DXVGzLFKnN6GNUFiDc',
+  inviteUrl: 'https://henna-invitation-hazel.vercel.app/',
 }
 
 /** The evening's programme shown under the curtains. */
