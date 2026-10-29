@@ -24,7 +24,38 @@
   position: absolute;
   inset: 0;
   transform-style: preserve-3d;
-  will-change: transform;
+  pointer-events: none;
+}
+
+.petal-rest {
+  position: absolute;
+  inset: 0;
+  background-size: 100% 100%;
+}
+
+/* Live 3D flaps (WebGL) while the envelope opens. */
+.flap-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Warm light from inside the envelope as the flaps lift. */
+.intro-glow {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 140vmax;
+  height: 140vmax;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 246, 222, 0.75) 0%, rgba(255, 240, 205, 0.25) 28%, rgba(255, 240, 205, 0) 55%);
+  mix-blend-mode: screen;
+  opacity: 0;
   pointer-events: none;
 }
 
@@ -62,22 +93,13 @@
   pointer-events: none;
 }
 
-.petal-back {
+.strip-back {
   background:
     url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><g fill='%2366764A' fill-opacity='.22'><path d='M12 44 C 20 34 30 28 42 22' stroke='%2366764A' stroke-opacity='.3' fill='none'/><path d='M20 36 c -1 -6 3 -10 7 -12 c 1 5 -2 9 -7 12z'/><path d='M29 30 c -1 -6 3 -9 7 -11 c 1 5 -2 8 -7 11z'/><path d='M22 38 c 5 -2 9 0 11 3 c -5 2 -9 0 -11 -3z'/></g></svg>"),
     linear-gradient(160deg, var(--ivory), var(--sage));
   background-size: 44px 44px, auto;
 }
 
-.petal--top .petal-back,
-.petal--bottom .petal-back {
-  transform: rotateX(180deg);
-}
-
-.petal--left .petal-back,
-.petal--right .petal-back {
-  transform: rotateY(180deg);
-}
 
 /* Soft light travelling across the paper, and a few motes in it. */
 .intro-ambient {
@@ -305,4 +327,10 @@
   border-radius: 45% 55% 40% 60%;
   background: linear-gradient(135deg, #dccfa6, #9c8857);
   opacity: 0;
+}
+
+/* The vector source a flap is baked from stays out of the layout. */
+.petal > svg {
+  position: absolute;
+  inset: 0;
 }

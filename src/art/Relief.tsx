@@ -335,8 +335,12 @@ export function pauseBaking(on: boolean) {
   if (!on) pump()
 }
 
-/** Vector source until its baked bitmap is ready; `priority` 0 bakes first. */
-export function Baked({ w, h, className, priority = 5, children }: { w: number; h: number; className?: string; priority?: number; children: ReactNode }) {
+/**
+ * Vector source until its baked bitmap is ready; `priority` 0 bakes first.
+ * With `onTexture`, the bitmap is handed to the caller (to paint onto other
+ * elements) instead of being shown here.
+ */
+export function Baked({ w, h, className, priority = 5, onTexture, children }: { w: number; h: number; className?: string; priority?: number; onTexture?: (url: string) => void; children: ReactNode }) {
   const ref = useRef<SVGSVGElement>(null)
   const [img, setImg] = useState<{ url: string; w: number; h: number } | null>(null)
   const current = img && img.w === w && img.h === h ? img.url : null
@@ -360,11 +364,16 @@ export function Baked({ w, h, className, priority = 5, children }: { w: number; 
     }
   }, [current, w, h, priority])
 
+  useEffect(() => {
+    if (current && onTexture) onTexture(current)
+  }, [current, onTexture])
+
   useEffect(() => () => {
     if (img?.url.startsWith('blob:')) URL.revokeObjectURL(img.url)
   }, [img])
 
   if (!w || !h) return null
+  if (current && onTexture) return null
   if (current) return <img className={`baked ${className ?? ''}`} src={current} width={w} height={h} alt="" aria-hidden="true" draggable={false} />
   // Never painted live: the vector source stays invisible while it is rasterised.
   return (

@@ -4,67 +4,80 @@ import { Baked, Sprig, rng } from './Relief'
 // Fine line "engravings" (drawn with thin strokes so they can draw themselves
 // on scroll) and the embossed theatre drapes for the programme.
 
-/** A Levantine stone house with arched iwan doors, flanked by olive trees. */
+/** The hotel at dusk as a fine engraving: the tower, the long wing, trees,
+ *  street lamps and light trails on the road. Drawn from scratch, not traced. */
 export function VenueEngraving({ className = '' }: { className?: string }) {
-  const hatch = Array.from({ length: 26 }, (_, i) => `M${92 + i * 8} 262 l-6 10`).join(' ')
-  const stones = Array.from({ length: 7 }, (_, r) =>
-    Array.from({ length: 9 }, (_, c) => `M${96 + c * 24 + (r % 2) * 12} ${132 + r * 18} h14`).join(' '),
-  ).join(' ')
-  const tree = (x: number, s: number) => {
-    const r = rng(Math.round(x))
-    // A wind-shaped olive canopy: a scalloped outline around an ellipse…
-    const cy = 200 - 70 * s
-    const rx = 44 * s
-    const ry = 34 * s
-    const n = 16
+  const rect = (x: number, y: number, w: number, h: number) => `M${x} ${y}h${w}v${h}h${-w}Z`
+  // Tower front: a grid of balconied windows with a lit arch in each.
+  const towerWin: string[] = []
+  const towerLight: string[] = []
+  for (let r = 0; r < 13; r++)
+    for (let c = 0; c < 5; c++) {
+      const x = 206 + c * 15, y = 62 + r * 13.4
+      towerWin.push(rect(x, y, 11, 10))
+      towerLight.push(`M${x + 3} ${y + 9} Q ${x + 5.5} ${y + 3} ${x + 8} ${y + 9}`)
+    }
+  // Tower side, in perspective.
+  const side: string[] = []
+  for (let r = 0; r < 14; r++) side.push(`M286 ${58 + r * 13.4} L306 ${62 + r * 13.2}`)
+  for (let c = 0; c < 3; c++) side.push(`M${290 + c * 6} ${60 + c * 1.2} V${232 + c * 1}`)
+  // The long wing to the left: rows of windows with small balconies.
+  const wing: string[] = []
+  for (let r = 0; r < 6; r++)
+    for (let c = 0; c < 9; c++) {
+      const x = 48 + c * 16, y = 134 + r * 17 + c * 1.1
+      wing.push(rect(x, y, 8, 10), `M${x - 1} ${y + 11}h10`)
+    }
+  const r = rng(7)
+  const canopy = (cx: number, cy: number, rx: number, ry: number) => {
+    const n = 14
     const pts = Array.from({ length: n }, (_, i) => {
       const a = (i / n) * Math.PI * 2
-      const k = 1 + (r() - 0.5) * 0.22
-      return [x + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k * (Math.sin(a) > 0 ? 0.8 : 1)]
+      const k = 1 + (r() - 0.5) * 0.25
+      return [cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k]
     })
-    let canopy = `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`
-    for (let i = 1; i <= n; i++) {
-      const [px, py] = pts[i % n]
-      canopy += ` A ${(7 * s).toFixed(1)} ${(7 * s).toFixed(1)} 0 0 1 ${px.toFixed(1)} ${py.toFixed(1)}`
-    }
-    // …filled with short leaf strokes for shading, denser on the shadow side.
-    const strokes = Array.from({ length: 34 }, () => {
-      const a = r() * Math.PI * 2
-      const d = Math.sqrt(r()) * 0.8
-      const lx = x + Math.cos(a) * rx * d
-      const ly = cy + Math.sin(a) * ry * d * 0.85
-      const ang = -0.6 + r() * 1.2
-      return `M${lx.toFixed(1)} ${ly.toFixed(1)} q ${(4 * s).toFixed(1)} ${(-3 * s * ang).toFixed(1)} ${(8 * s).toFixed(1)} ${(-1 * s).toFixed(1)}`
+    let d = `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`
+    for (let i = 1; i <= n; i++) d += ` A 6 6 0 0 1 ${pts[i % n][0].toFixed(1)} ${pts[i % n][1].toFixed(1)}`
+    const leaves = Array.from({ length: 22 }, () => {
+      const a = r() * Math.PI * 2, dd = Math.sqrt(r()) * 0.75
+      const x = cx + Math.cos(a) * rx * dd, y = cy + Math.sin(a) * ry * dd
+      return `M${x.toFixed(1)} ${y.toFixed(1)} q 3 -2 6 -0.5`
     }).join(' ')
-    const blobs = `${canopy}Z ${strokes}`
-    return (
-      <g>
-        <path className="engrave" pathLength={1} d={`M${x - 4} 262 C ${x - 2} ${240} ${x - 12} ${226} ${x - 6} ${200 - 40 * s} M${x + 4} 262 C ${x + 4} ${236} ${x + 12} ${222} ${x + 6} ${200 - 46 * s}`} />
-        <path className="engrave engrave--fine" pathLength={1} d={blobs} />
-      </g>
-    )
+    return { outline: d + 'Z', leaves }
+  }
+  const trees = [canopy(62, 228, 40, 26), canopy(140, 236, 44, 24), canopy(232, 240, 38, 22), canopy(318, 236, 34, 22)]
+  const lamp = (x: number, top: number) => {
+    const glint = Array.from({ length: 8 }, (_, i) => {
+      const a = (i / 8) * Math.PI * 2, l = i % 2 ? 4 : 8
+      return `M${x} ${top} l${(Math.cos(a) * l).toFixed(1)} ${(Math.sin(a) * l).toFixed(1)}`
+    }).join(' ')
+    return `M${x} 262 V${top + 4} ${glint}`
   }
   return (
     <svg className={`engraving ${className}`} viewBox="0 0 400 290" aria-hidden="true">
-      {tree(42, 1.05)}
-      {tree(358, 0.95)}
-      {/* Parapet and cornice */}
-      <path className="engrave" pathLength={1} d="M84 112 H316 M80 118 H320 M84 112 V104 H316 V112 M120 104 V96 H280 V104 M190 96 C 190 80 210 80 210 96" />
-      {/* Walls */}
-      <path className="engrave" pathLength={1} d="M88 118 V262 M312 118 V262 M88 262 H312" />
-      <path className="engrave engrave--fine" pathLength={1} d={stones} />
-      {/* Upper arched windows */}
-      {[120, 176, 232, 288].map((x) => (
-        <path key={x} className="engrave" pathLength={1} d={`M${x - 12} 168 V146 C ${x - 12} 132 ${x + 12} 132 ${x + 12} 146 V168 Z M${x} 136 V168 M${x - 12} 154 H${x + 12}`} />
+      {/* Tower */}
+      <path className="engrave" pathLength={1} d="M196 26 H292 L312 34 V44 L292 36 H196 Z M200 44 V242 M286 44 V244 M286 44 L306 50 V246" />
+      <path className="engrave engrave--fine" pathLength={1} d="M200 36 H286 M214 20 H262 V26 M230 14 V20 M200 50 H286" />
+      <path className="engrave engrave--fine" pathLength={1} d={towerWin.join(' ')} />
+      <path className="stitch" d={towerLight.join(' ')} />
+      <path className="engrave engrave--fine" pathLength={1} d={side.join(' ')} />
+      {/* Fire stair down the tower's left flank */}
+      <path className="engrave engrave--fine" pathLength={1} d={Array.from({ length: 12 }, (_, i) => `M188 ${66 + i * 14} L199 ${73 + i * 14} L188 ${80 + i * 14}`).join(' ')} />
+      {/* Long wing */}
+      <path className="engrave" pathLength={1} d="M40 128 L196 142 M40 128 V250 M40 128 L36 124 L196 138" />
+      <path className="engrave engrave--fine" pathLength={1} d={wing.join(' ')} />
+      {/* Street lamps */}
+      <path className="engrave engrave--fine" pathLength={1} d={`${lamp(338, 180)} ${lamp(364, 196)} ${lamp(386, 210)}`} />
+      {/* Trees in front, masking the building behind them */}
+      {trees.map((t, i) => (
+        <g key={i}>
+          <path className="engrave engrave--mass" pathLength={1} d={t.outline} />
+          <path className="engrave engrave--fine" pathLength={1} d={t.leaves} />
+        </g>
       ))}
-      {/* Iwan: three pointed arches */}
-      {[130, 200, 270].map((x, i) => (
-        <path key={x} className="engrave" pathLength={1} d={`M${x - (i === 1 ? 30 : 22)} 262 V${i === 1 ? 214 : 222} C ${x - (i === 1 ? 30 : 22)} ${i === 1 ? 190 : 202} ${x - 6} ${i === 1 ? 182 : 196} ${x} ${i === 1 ? 176 : 190} C ${x + 6} ${i === 1 ? 182 : 196} ${x + (i === 1 ? 30 : 22)} ${i === 1 ? 190 : 202} ${x + (i === 1 ? 30 : 22)} ${i === 1 ? 214 : 222} V262`} />
-      ))}
-      <path className="engrave engrave--fine" pathLength={1} d="M176 262 V218 M224 262 V218 M186 262 V226 M214 262 V226" />
-      {/* Steps and ground */}
-      <path className="engrave" pathLength={1} d="M150 262 H250 M156 268 H244 M40 274 H360" />
-      <path className="engrave engrave--fine" pathLength={1} d={hatch} />
+      {/* The road, with long-exposure light trails */}
+      <path className="engrave" pathLength={1} d="M0 262 H400" />
+      <path className="engrave engrave--fine" pathLength={1} d="M0 270 C 120 266 260 268 400 264 M0 276 C 140 272 270 274 400 270 M20 283 C 150 279 280 281 400 277" />
     </svg>
   )
 }

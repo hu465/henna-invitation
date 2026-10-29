@@ -30,19 +30,19 @@ export interface EventDetails {
 }
 
 export const defaultEvent: EventDetails = {
-  // Placeholders — replace with the real details before sending.
+  // The date is still a placeholder — replace it before sending.
   brideName: 'سارة عمر يونس',
   groomName: '',
   monogram: 'س',
   hostLine: 'تتشرّف عائلة العروس بدعوتكم',
   date: '2026-12-17',
-  time: '20:00',
-  endTime: '23:30',
-  venueName: 'اسم القاعة',
-  venueAddress: 'المدينة — العنوان التفصيلي',
-  mapUrl: '',
+  time: '17:00',
+  endTime: '',
+  venueName: 'فندق ريجنسي بالاس',
+  venueAddress: 'عمّان — الشميساني، شارع الملكة نور',
+  mapUrl: 'https://www.google.com/maps/search/?api=1&query=Regency+Palace+Hotel+Amman',
   dressCode: 'الثوب',
-  note: 'السهرة للسيدات فقط',
+  note: 'نعتذر عن اصطحاب الأطفال',
   hostWhatsapp: '',
   rsvpDeadline: '2026-12-10',
   musicUrl: '',
@@ -53,11 +53,8 @@ export const defaultEvent: EventDetails = {
   songYoutubeId: 'NzwqktLGlb0',
 }
 
-/** The evening's programme shown under the curtains. Times are placeholders. */
+/** The evening's programme shown under the curtains. */
 export const programme: { time: string; title: string; note?: string }[] = [
-  { time: '20:00', title: 'استقبال الضيوف', note: 'القهوة العربية والضيافة' },
-  { time: '20:45', title: 'زفّة العروس', note: 'على أنغام الزفّة الشامية' },
-  { time: '21:30', title: 'نقش الحنّة', note: 'طقوس الحنّة وأغانيها' },
-  { time: '22:15', title: 'العشاء' },
-  { time: '23:00', title: 'السهرة والدبكة' },
+  { time: '17:00', title: 'استقبال الضيوف' },
+  { time: '19:00', title: 'جبلة الحنّة' },
 ]

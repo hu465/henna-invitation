@@ -48,6 +48,8 @@
   position: absolute;
   inset: 0;
   z-index: 1;
+  /* Plain paper until the relief artwork is ready, so a quick tap never shows through. */
+  background: var(--paper);
   box-shadow: 0 30px 70px -20px rgba(15, 20, 10, 0.65), 0 10px 22px -8px rgba(15, 20, 10, 0.45);
   will-change: transform;
 }
@@ -497,6 +499,10 @@
   stroke-dashoffset: 0;
 }
 
+.engrave--mass {
+  fill: var(--paper);
+}
+
 .engrave--fine {
   stroke-width: 0.6;
   opacity: 0.75;
@@ -896,6 +902,12 @@
   border: 0.5px solid rgba(198, 181, 138, 0.8);
   border-radius: 172px 172px 8px 8px;
   pointer-events: none;
+}
+
+.rsvp-note {
+  margin: -0.6rem 0 1.2rem;
+  text-align: center;
+  color: var(--text-soft);
 }
 
 .rsvp-deadline {

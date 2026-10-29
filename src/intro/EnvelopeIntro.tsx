@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, type KeyboardEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react'
 import gsap from 'gsap'
 import type { EventDetails } from '../config/event'
 import { WaxSealArt } from '../art/Ornaments'
@@ -6,7 +6,9 @@ import { Baked, BevelStroke, PaperFinish, Sprig, pauseBaking } from '../art/Reli
 import { Drift } from '../art/Drift'
 import { SoundToggle } from '../audio/SoundToggle'
 import { ambience, soundPreferred } from '../audio/ambience'
+import { crack, primeFoley, rustle } from '../audio/foley'
 import { useViewport } from '../lib/useViewport'
+import { createFlapRenderer, type FlapRenderer, type FlapState } from './flapGL'
 import './envelope.css'
 
 /** The opening is an explicit state machine; each phase is a label on one GSAP timeline. */
@@ -41,15 +43,16 @@ function petalGeometry(side: Side, w: number, h: number): { pts: Pt[]; origin: s
   }
 }
 
-/** Darkening toward the free tip, used while a petal turns away from the light. */
-const shadeGradient = (side: Side) =>
-  `linear-gradient(${{ top: 180, bottom: 0, left: 90, right: 270 }[side]}deg, rgba(10,14,6,0.15), rgba(10,14,6,0.65))`
+const toPoly = (pts: Pt[]) => `polygon(${pts.map(([x, y]) => `${x.toFixed(1)}px ${y.toFixed(1)}px`).join(',')})`
 
-const toPoly = (pts: Pt[]) => `polygon(${pts.map(([x, y]) => `${x}px ${y}px`).join(',')})`
-
-function Petal({ side, w, h, seed }: { side: Side; w: number; h: number; seed: number }) {
+function Petal({ side, w, h, seed, onTexture }: { side: Side; w: number; h: number; seed: number; onTexture: (side: Side, url: string) => void }) {
   const { pts, origin } = petalGeometry(side, w, h)
   const clipId = `petal-clip-${side}`
+  const [texture, setTexture] = useState<string | null>(null)
+  const ready = useCallback((url: string) => {
+    setTexture(url)
+    onTexture(side, url)
+  }, [onTexture, side])
   const art = useMemo(() => {
     const [a, b, tip] = pts
     const base: Pt = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
@@ -63,42 +66,36 @@ function Petal({ side, w, h, seed }: { side: Side; w: number; h: number; seed: n
     const rim = pts.map(([x, y]) => `${c[0] + (x - c[0]) * k},${c[1] + (y - c[1]) * k}`).join(' ')
     return { start, ang, len, rim }
   }, [pts])
-  // The back face is flipped about the screen centre, so its outline is mirrored.
-  const backPts: Pt[] = side === 'top' || side === 'bottom' ? pts.map(([x, y]) => [x, h - y]) : pts.map(([x, y]) => [w - x, y])
   const sprigLen = Math.min(art.len * 0.66, 380)
 
   return (
     <div className={`petal petal--${side}`} style={{ transformOrigin: origin }}>
-      <div className="petal-face petal-front">
-        <Baked w={w} h={h} priority={0}>
-          <defs>
-            <clipPath id={clipId}>
-              <polygon points={art.rim} />
-            </clipPath>
-          </defs>
-          {/* Soft cast shadow on the petals beneath, then the paper with a bevelled edge. */}
-          <polygon points={pts.map((p) => p.join(',')).join(' ')} fill="rgba(14,18,8,0.55)" transform="translate(3 7)" filter="url(#soft-shadow)" />
-          <polygon points={pts.map((p) => p.join(',')).join(' ')} fill="rgba(14,18,8,0.3)" transform="translate(0.8 1.4)" />
-          <BevelStroke d={`M${pts.map((p) => p.join(' ')).join(' L')}Z`} paper={PAPER} width={1.4} fill={PAPER} hi="rgba(244,236,210,0.32)" sh="rgba(20,26,12,0.5)" depth={0.9} />
-          <BevelStroke d={`M${art.rim.replace(/ /g, ' L').replace(/,/g, ' ')}Z`} paper={PAPER} width={1.4} hi="rgba(244,236,210,0.28)" sh="rgba(20,26,12,0.45)" depth={0.8} />
-          <defs>
-            <clipPath id={`${clipId}-paper`}>
-              <polygon points={pts.map((p) => p.join(',')).join(' ')} />
-            </clipPath>
-          </defs>
-          <PaperFinish w={w} h={h} clip={`${clipId}-paper`} grain={1.1} />
-          {/* Each petal carries its own leaves, kept inside its rim. */}
-          <g clipPath={`url(#${clipId})`}>
+      <Baked w={w} h={h} priority={0} onTexture={ready}>
+        <defs>
+          <clipPath id={clipId}>
+            <polygon points={art.rim} />
+          </clipPath>
+          <clipPath id={`${clipId}-paper`}>
+            <polygon points={pts.map((p) => p.join(',')).join(' ')} />
+          </clipPath>
+        </defs>
+        {/* Soft cast shadow on the petals beneath, then the paper with a bevelled edge. */}
+        <polygon points={pts.map((p) => p.join(',')).join(' ')} fill="rgba(14,18,8,0.55)" transform="translate(3 7)" filter="url(#soft-shadow)" />
+        <polygon points={pts.map((p) => p.join(',')).join(' ')} fill="rgba(14,18,8,0.3)" transform="translate(0.8 1.4)" />
+        <BevelStroke d={`M${pts.map((p) => p.join(' ')).join(' L')}Z`} paper={PAPER} width={1.4} fill={PAPER} hi="rgba(244,236,210,0.32)" sh="rgba(20,26,12,0.5)" depth={0.9} />
+        <BevelStroke d={`M${art.rim.replace(/ /g, ' L').replace(/,/g, ' ')}Z`} paper={PAPER} width={1.4} hi="rgba(244,236,210,0.28)" sh="rgba(20,26,12,0.45)" depth={0.8} />
+        <PaperFinish w={w} h={h} clip={`${clipId}-paper`} grain={1.1} />
+        {/* Each petal carries its own leaves, kept inside its rim. */}
+        <g clipPath={`url(#${clipId})`}>
           <g transform={`translate(${art.start[0]} ${art.start[1]}) rotate(${art.ang})`}>
             <Sprig length={sprigLen} leaves={11} seed={seed} fill={PAPER} filter="url(#emboss-olive)" transform="rotate(-21)" leafScale={0.24} curve={0.1} />
             <Sprig length={sprigLen * 0.96} leaves={11} seed={seed + 11} fill={PAPER} filter="url(#emboss-olive)" transform="rotate(21)" leafScale={0.24} curve={-0.1} />
             <Sprig length={sprigLen * 0.5} leaves={7} seed={seed + 23} fill={PAPER} filter="url(#emboss-olive)" leafScale={0.26} curve={0.04} />
           </g>
-          </g>
-        </Baked>
-        <div className="petal-shade" style={{ clipPath: toPoly(pts), background: shadeGradient(side) }} />
-      </div>
-      <div className="petal-face petal-back" style={{ clipPath: toPoly(backPts) }} />
+        </g>
+      </Baked>
+      {/* At rest the flap is one sheet with its soft shadow; WebGL takes over to bend it. */}
+      <div className="petal-rest" style={{ backgroundColor: texture ? 'transparent' : PAPER, backgroundImage: texture ? `url(${texture})` : undefined, clipPath: texture ? undefined : toPoly(pts) }} />
     </div>
   )
 }
@@ -107,6 +104,20 @@ export function EnvelopeIntro({ event, phase, onPhase, buildHeroReveal }: Props)
   const root = useRef<HTMLDivElement>(null)
   const tl = useRef<gsap.core.Timeline | null>(null)
   const { w, h } = useViewport()
+  const canvas = useRef<HTMLCanvasElement>(null)
+  const gl = useRef<FlapRenderer | null>(null)
+  // Each flap's baked artwork, decoded and ready to upload as a WebGL texture.
+  const images = useRef<Partial<Record<Side, HTMLImageElement>>>({})
+  const onTexture = useCallback((side: Side, url: string) => {
+    const img = new Image()
+    img.src = url
+    img.decode().then(() => (images.current[side] = img), () => {})
+  }, [])
+
+  useEffect(() => () => {
+    gl.current?.dispose()
+    gl.current = null
+  }, [])
 
   const unlock = () => document.documentElement.classList.remove('is-locked')
 
@@ -142,6 +153,9 @@ export function EnvelopeIntro({ event, phase, onPhase, buildHeroReveal }: Props)
       .to(q('.intro-copy, .intro-skip'), { autoAlpha: 0, duration: 0.4, ease: 'power2.in', stagger: 0.04 }, 'sealActivated+=0.05')
       .fromTo(q('.seal-crack path'), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.18, ease: 'power1.in' }, 'sealActivated+=0.24')
       .addLabel('break', 'sealActivated+=0.42')
+      .call(crack, [], 'break')
+      // The impact travels through the paper: a tiny, quick shudder.
+      .to(q('.petals, .flap-canvas'), { keyframes: { x: [0, -2.5, 2, -1.2, 0.8, 0], y: [0, 1.5, -1, 0.6, 0, 0] }, duration: 0.24, ease: 'none' }, 'break')
       .to(q('.seal-crack, .seal-glow'), { opacity: 0, duration: 0.15 }, 'break')
       .to(q('.seal-l'), { x: -36, y: 90, rotation: -34, duration: 0.75, ease: 'power2.in' }, 'break')
       .to(q('.seal-r'), { x: 30, y: 104, rotation: 28, duration: 0.75, ease: 'power2.in' }, 'break')
@@ -159,17 +173,76 @@ export function EnvelopeIntro({ event, phase, onPhase, buildHeroReveal }: Props)
     // ── envelopeOpening: the four petals unfold on their hinges, top first. ──
       .addLabel('envelopeOpening', 'break+=0.04')
       .call(() => onPhase('envelopeOpening'), [], 'envelopeOpening')
-    // Each flap darkens as it turns edge-on to the light, then shows its lining.
-    const unfold = (side: Side, prop: 'rotationX' | 'rotationY', to: number, at: number) =>
-      t.to(q(`.petal--${side}`), { [prop]: to, duration: 0.95, ease: 'power2.inOut' }, `envelopeOpening+=${at}`)
-        .to(q(`.petal--${side} .petal-shade`), { keyframes: { opacity: [0, 0.85, 0] }, duration: 0.7, ease: 'none' }, `envelopeOpening+=${at}`)
-        .to(q(`.petal--${side}`), { opacity: 0, duration: 0.3, ease: 'power1.in' }, `envelopeOpening+=${at + 0.62}`)
+    // Each flap lifts from its hinge and curls as it goes (the free end lagging,
+    // as paper does), lit as it turns: in WebGL when available, otherwise as a
+    // rigid CSS 3D flap.
+    const lift = gsap.parseEase('power2.inOut')
+    const sides: Side[] = ['top', 'left', 'right', 'bottom']
+    const imgs = images.current
+    let renderer: FlapRenderer | null = null
+    if (canvas.current && sides.every((s) => imgs[s])) {
+      try {
+        renderer = createFlapRenderer(canvas.current, w, h, imgs as Record<Side, HTMLImageElement>)
+      } catch (err) {
+        // Falls back to rigid CSS flaps.
+        console.warn('3D flaps unavailable:', err)
+        renderer = null
+      }
+    }
+    gl.current = renderer
+    const states = Object.fromEntries(sides.map((s) => [s, { angle: 0, curl: 0, alpha: 1 }])) as Record<Side, FlapState>
+    let dirty = true
+    if (import.meta.env.DEV) Object.assign(window, { __flaps: { states, webgl: !!renderer } })
+    const draw = () => {
+      if (renderer && dirty) {
+        renderer.render(states)
+        dirty = false
+      }
+    }
+    if (renderer) {
+      draw()
+      gsap.ticker.add(draw)
+      t.eventCallback('onComplete', () => {
+        gsap.ticker.remove(draw)
+        finish()
+      })
+      // Hand over from the resting paper to the live 3D flaps.
+      t.set(q('.flap-canvas'), { autoAlpha: 1 }, 'envelopeOpening')
+        .set(q('.petal'), { autoAlpha: 0 }, 'envelopeOpening')
+    }
+    const unfold = (side: Side, at: number, dur = 1.0) => {
+      const el = q(`.petal--${side}`)[0] as HTMLElement
+      const st = { p: 0 }
+      const rigid = { rotationX: { top: 172, bottom: -172 }, rotationY: { left: -172, right: 172 } }
+      t.to(st, {
+        p: 1,
+        duration: dur,
+        ease: 'none',
+        onUpdate: () => {
+          const angle = lift(st.p) * 172
+          if (renderer) {
+            states[side].angle = angle
+            states[side].curl = Math.sin(Math.PI * Math.min(1, st.p * 1.15)) * 38
+            states[side].alpha = st.p < 0.66 ? 1 : Math.max(0, 1 - (st.p - 0.66) / 0.3)
+            dirty = true
+          } else {
+            const prop = side === 'top' || side === 'bottom' ? 'rotationX' : 'rotationY'
+            const target = prop === 'rotationX' ? rigid.rotationX[side as 'top' | 'bottom'] : rigid.rotationY[side as 'left' | 'right']
+            gsap.set(el, { [prop]: (target * angle) / 172, opacity: st.p < 0.66 ? 1 : Math.max(0, 1 - (st.p - 0.66) / 0.3) })
+          }
+        },
+      }, `envelopeOpening+=${at}`)
+        .call(rustle, [dur * 0.7], `envelopeOpening+=${at}`)
+    }
     // A slow push-in, as if the camera leans toward the opening envelope.
-    t.to(q('.petals'), { scale: 1.07, duration: 1.6, ease: 'power1.inOut' }, 'envelopeOpening')
-    unfold('top', 'rotationX', 172, 0)
-    unfold('left', 'rotationY', -172, 0.3)
-    unfold('right', 'rotationY', 172, 0.38)
-    unfold('bottom', 'rotationX', -172, 0.6)
+    t.to(q('.petals, .flap-canvas'), { scale: 1.07, duration: 1.7, ease: 'power1.inOut' }, 'envelopeOpening')
+    // Warm light spills out of the envelope as it opens.
+    t.fromTo(q('.intro-glow'), { opacity: 0, scale: 0.6 }, { opacity: 0.85, scale: 1.25, duration: 0.9, ease: 'power2.out' }, 'envelopeOpening+=0.15')
+    unfold('top', 0)
+    unfold('left', 0.3)
+    unfold('right', 0.38)
+    unfold('bottom', 0.6)
+    t.set(q('.flap-canvas'), { autoAlpha: 0 }, 'envelopeOpening+=1.6')
     t.to(q('.intro-ambient'), { opacity: 0, duration: 0.6 }, 'envelopeOpening+=0.3')
       .set(root.current, { autoAlpha: 0 }, 'envelopeOpening+=1.55')
 
@@ -185,12 +258,15 @@ export function EnvelopeIntro({ event, phase, onPhase, buildHeroReveal }: Props)
       t.call(() => onPhase('invitationRevealing'), [], 'cardEmerging')
     }
     return t
-  }, [buildHeroReveal, finish, onPhase])
+  }, [buildHeroReveal, finish, onPhase, w, h])
 
   const open = useCallback(() => {
     if (tl.current || !root.current) return
     pauseBaking(true)
-    if (soundPreferred()) ambience(event.musicUrl).start()
+    if (soundPreferred()) {
+      primeFoley()
+      ambience(event.musicUrl).start()
+    }
     if (reducedMotion()) {
       // Calm alternative: a short cross-fade with the invitation already composed.
       onPhase('sealActivated')
@@ -230,12 +306,14 @@ export function EnvelopeIntro({ event, phase, onPhase, buildHeroReveal }: Props)
   return (
     <div ref={root} className="intro" data-phase={phase} role="dialog" aria-modal="true" aria-label="دعوة ليلة الحنّة" onKeyDown={trapFocus} onClick={open}>
       <div className="petals" aria-hidden="true">
-        <Petal side="bottom" w={w} h={h} seed={31} />
-        <Petal side="left" w={w} h={h} seed={7} />
-        <Petal side="right" w={w} h={h} seed={19} />
-        <Petal side="top" w={w} h={h} seed={3} />
+        <Petal side="bottom" w={w} h={h} seed={31} onTexture={onTexture} />
+        <Petal side="left" w={w} h={h} seed={7} onTexture={onTexture} />
+        <Petal side="right" w={w} h={h} seed={19} onTexture={onTexture} />
+        <Petal side="top" w={w} h={h} seed={3} onTexture={onTexture} />
       </div>
+      <canvas ref={canvas} className="flap-canvas" aria-hidden="true" />
 
+      <div className="intro-glow" aria-hidden="true" />
       <div className="intro-ambient" aria-hidden="true">
         <div className="intro-sheen" />
         <Drift kind="mote" count={12} seed={5} />

@@ -1,4 +1,5 @@
 import gsap from 'gsap'
+import { swish } from '../audio/foley'
 
 // Scene 2–3 inside the envelope: the satin ribbon unties and slides away, the
 // card lifts to fill the screen, and the Arabic writing appears. The intro
@@ -34,7 +35,7 @@ function parts(hero: HTMLElement) {
 export function prepareHero(hero: HTMLElement) {
   const p = parts(hero)
   // Lying in the envelope the card casts a tight shadow; it grows as the card lifts.
-  gsap.set(p.face, { scale: 0.86, transformOrigin: '50% 50%', boxShadow: SHADOW_LOW })
+  gsap.set(p.face, { scale: 0.86, rotationX: 0, transformPerspective: 1400, transformOrigin: '50% 55%', boxShadow: SHADOW_LOW })
   gsap.set([...p.loopL, ...p.loopR, ...p.tailL, ...p.tailR, ...p.knot, ...p.ribbonL, ...p.ribbonR, ...p.wrap], { clearProps: 'all' })
   gsap.set(p.ribbon, { autoAlpha: 1 })
   // Arabic is never split into letters (that breaks the joins): each line is
@@ -57,6 +58,7 @@ export function heroRevealTimeline(hero: HTMLElement) {
   // The bow is pulled: loops collapse into the knot, tails drop, the band parts.
   t.addLabel('untie', 0)
     .to(p.knot, { scale: 1.15, duration: 0.14, ease: 'power2.out', transformOrigin: '50% 50%' }, 'untie')
+    .call(swish, [0.9], 'untie+=0.3')
     .to(p.loopL, { scaleX: 0.15, scaleY: 0.5, opacity: 0, duration: 0.45, ease: 'power2.in', transformOrigin: '100% 50%' }, 'untie+=0.1')
     .to(p.loopR, { scaleX: 0.15, scaleY: 0.5, opacity: 0, duration: 0.45, ease: 'power2.in', transformOrigin: '0% 50%' }, 'untie+=0.1')
     .to(p.tailL, { y: 90, rotation: 22, opacity: 0, duration: 0.6, ease: 'power2.in', transformOrigin: '100% 0%' }, 'untie+=0.15')
@@ -69,7 +71,7 @@ export function heroRevealTimeline(hero: HTMLElement) {
 
   // The card lifts out of the envelope until it fills the screen.
     .addLabel('lift', 'untie+=0.75')
-    .to(p.face, { scale: 1, boxShadow: SHADOW_HIGH, duration: 0.9, ease: 'power3.inOut' }, 'lift')
+    .to(p.face, { scale: 1, boxShadow: SHADOW_HIGH, duration: 0.9, ease: 'power3.inOut', keyframes: { rotationX: [0, 9, 0], ease: 'none' } }, 'lift')
     .to(p.petals, { opacity: 1, duration: 1.2 }, 'lift+=0.5')
 
   // invitationRevealing: the writing appears line by line; the heading is inked.

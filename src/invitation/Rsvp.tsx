@@ -65,6 +65,7 @@ export function Rsvp({ event }: { event: EventDetails }) {
       {event.rsvpDeadline && (
         <p className="rsvp-deadline">نرجو التأكيد قبل {gregorianDate({ ...event, date: event.rsvpDeadline, time: '12:00' })}</p>
       )}
+      {event.note && <p className="rsvp-note">{event.note}</p>}
 
       <div className="field">
         <label htmlFor={`${id}-name`}>الاسم</label>

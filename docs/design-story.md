@@ -41,12 +41,22 @@ the card, champagne satin for the ribbon and wax, and sage or olive satin for th
 | ≈3.1 | `invitationRevealing` | The Arabic lines wipe in right to left, and «ليلة الحنّة» is traced as a stroke, then inked. |
 | ≈5.5 | `invitationOpen` | Scroll unlocks and the scenes continue. |
 
+Realism: during the opening the flaps are rendered in WebGL (`src/intro/flapGL.ts`, no
+library). Each flap is a strip bent along a continuous curve, so the tip lags the hinge as real
+paper does, and it is lit by a key light with a moving specular sheen. The ivory lining shows on
+the back. Phones without WebGL get rigid CSS 3D flaps. The seal impact makes the paper shudder,
+warm light spills from inside, and with sound on, synthesised foley plays: the wax crack, paper
+rustles and the satin swish (`src/audio/foley.ts`).
+
 Performance: the relief is rasterised once per viewport size in a priority queue (envelope
 first, then the card, then the rest), paused while the opening plays. Large outlines use cheap
 offset strokes instead of filters.
 
-## Why not Three.js
-The `threejs` skill was evaluated. CSS 3D transforms already give a real hinge rotation,
+## Why raw WebGL rather than Three.js
+The `threejs` skill was evaluated. For the cards and text, DOM and CSS remain best (live,
+shaped, accessible Arabic). For the bending paper flaps, WebGL was needed. Four textured strips
+with a hand-written shader are about 200 lines; Three.js would add roughly 150 KB gzipped to an
+invitation opened over mobile data, so a small dedicated renderer was written instead. CSS 3D transforms already give a real hinge rotation,
 perspective travel and backface switching, and they keep Arabic text as live, shaped, selectable,
 screen-reader-visible DOM. WebGL text would need an Arabic shaping pipeline, cost roughly 600 KB more, and
 add a GPU/battery and accessibility burden without a visible gain for a paper envelope.
