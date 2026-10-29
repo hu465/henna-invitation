@@ -38,7 +38,7 @@ export const defaultEvent: EventDetails = {
   time: '17:00',
   endTime: '',
   venueName: 'فندق ريجنسي بالاس',
-  venueAddress: 'عمّان — الشميساني، شارع الملكة نور',
+  venueAddress: 'عمّان — شارع الملكة نور',
   mapUrl: 'https://www.google.com/maps/search/?api=1&query=Regency+Palace+Hotel+Amman',
   dressCode: 'الثوب',
   dressNote: 'يسعدنا أن تشاركينا الفرحة بالثوب التراثي المطرّز، باللون والتطريز الذي تحبّينه',
