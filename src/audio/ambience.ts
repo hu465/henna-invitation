@@ -9,6 +9,7 @@ class Ambience {
   private ctx: AudioContext | null = null
   private master: GainNode | null = null
   private timer = 0
+  private fade = 0
   private audio: HTMLAudioElement | null = null
   private step = 0
   playing = false
@@ -22,7 +23,7 @@ class Ambience {
       this.audio ??= Object.assign(new Audio(this.url), { loop: true, volume: 0 })
       try {
         await this.audio.play()
-        this.fadeElement(0.6)
+        this.fadeElement(0.8)
       } catch {
         this.playing = false
       }
@@ -57,13 +58,15 @@ class Ambience {
     const a = this.audio!
     const from = a.volume
     const t0 = performance.now()
-    const tick = (t: number) => {
-      const k = Math.min(1, (t - t0) / 1200)
+    // A timer rather than animation frames, so the busy opening can't stall it.
+    clearInterval(this.fade)
+    this.fade = window.setInterval(() => {
+      const k = Math.min(1, (performance.now() - t0) / 1200)
       a.volume = from + (to - from) * k
-      if (k < 1) requestAnimationFrame(tick)
-      else done?.()
-    }
-    requestAnimationFrame(tick)
+      if (k < 1) return
+      clearInterval(this.fade)
+      done?.()
+    }, 40)
   }
 
   private build() {
