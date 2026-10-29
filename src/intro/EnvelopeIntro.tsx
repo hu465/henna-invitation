@@ -5,7 +5,7 @@ import { WaxSealArt } from '../art/Ornaments'
 import { Baked, BevelStroke, PaperFinish, Sprig, pauseBaking } from '../art/Relief'
 import { Drift } from '../art/Drift'
 import { SoundToggle } from '../audio/SoundToggle'
-import { ambience, soundPreferred } from '../audio/ambience'
+import { ambience } from '../audio/ambience'
 import { crack, primeFoley, rustle } from '../audio/foley'
 import { useViewport } from '../lib/useViewport'
 import { createFlapRenderer, type FlapRenderer, type FlapState } from './flapGL'
@@ -267,10 +267,8 @@ export function EnvelopeIntro({ event, guestName, phase, onPhase, buildHeroRevea
   const open = useCallback(() => {
     if (tl.current || !root.current) return
     pauseBaking(true)
-    if (soundPreferred()) {
-      primeFoley()
-      ambience(event.musicUrl).start()
-    }
+    primeFoley()
+    void ambience(event.musicUrl).start()
     if (reducedMotion()) {
       // Calm alternative: a short cross-fade with the invitation already composed.
       onPhase('sealActivated')

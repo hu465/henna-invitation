@@ -6,6 +6,7 @@ import { loadEvent } from './lib/store'
 import { ReliefDefs } from './art/Relief'
 import { NameGate } from './intro/NameGate'
 import { loadGuestName, saveGuestName } from './lib/guest'
+import { startMusicOnFirstGesture } from './audio/ambience'
 
 // The planner is for the host only, so guests never download it.
 const Planner = lazy(() => import('./planner/Planner').then((m) => ({ default: m.Planner })))
@@ -36,6 +37,7 @@ const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matc
 function GuestInvitation() {
   const [event] = useState(loadEvent)
   const [guestName, setGuestName] = useState(loadGuestName)
+  useEffect(() => startMusicOnFirstGesture(event.musicUrl), [event.musicUrl])
   // `?intro=0` skips the envelope (handy for a direct link to the RSVP).
   const [phase, setPhase] = useState<Phase>(() => (new URLSearchParams(location.search).get('intro') === '0' ? 'invitationOpen' : 'closed'))
   // Bumped on replay so the envelope remounts in its closed state.

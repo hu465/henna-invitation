@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ambience, setSoundPreferred } from './ambience'
+import { ambience } from './ambience'
 
 /** Visible, always-available sound switch. Never starts audio on its own. */
 export function SoundToggle({ url, className = '' }: { url: string; className?: string }) {
@@ -9,7 +9,17 @@ export function SoundToggle({ url, className = '' }: { url: string; className?: 
   useEffect(() => {
     const sync = () => setOn(amb.playing)
     const id = setInterval(sync, 500)
-    const vis = () => (document.hidden ? amb.stop() : undefined)
+    // Pause while the page is hidden (e.g. while replying in WhatsApp) and
+    // carry on when the guest comes back.
+    let resume = false
+    const vis = () => {
+      if (document.hidden) {
+        resume = amb.playing
+        amb.stop()
+      } else if (resume) {
+        void amb.start()
+      }
+    }
     document.addEventListener('visibilitychange', vis)
     return () => {
       clearInterval(id)
@@ -20,7 +30,6 @@ export function SoundToggle({ url, className = '' }: { url: string; className?: 
   const toggle = () => {
     if (amb.playing) amb.stop()
     else amb.start()
-    setSoundPreferred(amb.playing)
     setOn(amb.playing)
   }
 

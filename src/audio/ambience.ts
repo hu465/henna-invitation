@@ -149,18 +149,18 @@ export function ambience(url: string) {
   return instance
 }
 
-const PREF = 'henna:sound'
-export const soundPreferred = () => {
-  try {
-    return localStorage.getItem(PREF) !== 'off'
-  } catch {
-    return true
+/**
+ * Starts the music on the guest's first tap or key press anywhere (browsers
+ * only allow sound after one), so it is playing from the name step onwards.
+ */
+export function startMusicOnFirstGesture(url: string) {
+  const events = ['click', 'touchend', 'keydown'] as const
+  const go = () => {
+    const amb = ambience(url)
+    void amb.start().then(() => {
+      if (amb.playing) events.forEach((e) => document.removeEventListener(e, go, true))
+    })
   }
-}
-export const setSoundPreferred = (on: boolean) => {
-  try {
-    localStorage.setItem(PREF, on ? 'on' : 'off')
-  } catch {
-    // ignore
-  }
+  events.forEach((e) => document.addEventListener(e, go, true))
+  return () => events.forEach((e) => document.removeEventListener(e, go, true))
 }
