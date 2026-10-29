@@ -17,8 +17,6 @@ export function Rsvp({ event, guestName = '' }: { event: EventDetails; guestName
   const [message, setMessage] = useState('')
   const [errors, setErrors] = useState<Errors>({})
   const [sent, setSent] = useState<null | { attending: boolean }>(null)
-  const [sending, setSending] = useState(false)
-  const [failed, setFailed] = useState('')
   const nameRef = useRef<HTMLInputElement>(null)
   const statusRef = useRef<HTMLDivElement>(null)
 
@@ -29,30 +27,29 @@ export function Rsvp({ event, guestName = '' }: { event: EventDetails; guestName
     return e
   }
 
-  const submit = async (ev: FormEvent) => {
+  const replyText = (coming: boolean) =>
+    `ليلة حنّة ${event.brideName}\nالاسم: ${name.trim()}\n${coming ? `سأحضر بإذن الله (${guests} ${guests > 1 ? 'أشخاص' : 'شخص'})` : 'أعتذر عن الحضور'}${message.trim() ? `\n${message.trim()}` : ''}`
+  const waLink = (coming: boolean) => `https://wa.me/${event.hostWhatsapp}?text=${encodeURIComponent(replyText(coming))}`
+
+  // The reply goes to the host on WhatsApp, written out for the guest to send.
+  const submit = (ev: FormEvent) => {
     ev.preventDefault()
-    if (sending) return
     const e = validate()
     setErrors(e)
     if (e.name) return nameRef.current?.focus()
     if (e.attending) return document.getElementById(`${id}-yes`)?.focus()
     const reply = { name: name.trim(), attending: attending === 'yes', guests: attending === 'yes' ? guests : 0, message: message.trim() }
-    setSending(true)
-    setFailed('')
-    const problem = await sendRsvp(reply)
-    setSending(false)
-    if (problem) {
-      setFailed(problem)
-      return
-    }
+    // Opened inside the tap so browsers allow it; fall back to this tab if blocked.
+    const url = waLink(reply.attending)
+    const tab = window.open(url, '_blank')
+    if (tab) tab.opener = null
+    else location.href = url
     addRsvp(reply)
+    // Also kept in the host's replies list when the site has storage connected.
+    void sendRsvp(reply)
     setSent({ attending: reply.attending })
     requestAnimationFrame(() => statusRef.current?.focus())
   }
-
-  const replyText = (coming: boolean) =>
-    `ليلة حنّة ${event.brideName}\nالاسم: ${name.trim()}\n${coming ? `سأحضر بإذن الله (${guests} ${guests > 1 ? 'أشخاص' : 'شخص'})` : 'أعتذر عن الحضور'}${message.trim() ? `\n${message.trim()}` : ''}`
-  const waText = sent ? replyText(sent.attending) : ''
 
   if (sent) {
     return (
@@ -62,13 +59,11 @@ export function Rsvp({ event, guestName = '' }: { event: EventDetails; guestName
           <circle cx="40" cy="40" r="30" fill="none" stroke="currentColor" strokeWidth=".6" strokeDasharray="2 3" />
           <path className="rsvp-check" pathLength={1} d="M26 41 l9 9 l19 -21" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <h3>{sent.attending ? 'وصلنا ردّكِ، ننتظركِ بشوق' : 'وصلنا ردّكِ، ستفتقدكِ السهرة'}</h3>
-        <p>شكراً {name.trim()} — وصل ردّكِ إلى صاحبة الدعوة.</p>
-        {event.hostWhatsapp && (
-          <a className="btn btn--olive" href={`https://wa.me/${event.hostWhatsapp}?text=${encodeURIComponent(waText)}`} target="_blank" rel="noopener noreferrer">
-            أرسلي الرد لصاحبة الدعوة عبر واتساب
-          </a>
-        )}
+        <h3>{sent.attending ? 'شكراً لكِ، ننتظركِ بشوق' : 'شكراً لكِ، ستفتقدكِ السهرة'}</h3>
+        <p>اضغطي «إرسال» في واتساب ليصلنا ردّكِ يا {name.trim()}.</p>
+        <a className="btn btn--text" href={waLink(sent.attending)} target="_blank" rel="noopener noreferrer">
+          لم يُفتح واتساب؟ اضغطي هنا
+        </a>
         <button type="button" className="btn btn--text" onClick={() => setSent(null)}>
           تعديل الرد
         </button>
@@ -134,21 +129,11 @@ export function Rsvp({ event, guestName = '' }: { event: EventDetails; guestName
         <textarea id={`${id}-msg`} rows={3} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="دعواتكِ وتهانيكِ…" />
       </div>
 
-      {failed && (
-        <div className="rsvp-failed" role="alert">
-          <p className="field-error">
-            تعذّر حفظ الرد{event.hostWhatsapp ? '، أرسليه لنا عبر واتساب بضغطة واحدة' : '، حاولي مرة أخرى'}.
-            <span className="rsvp-code" dir="ltr"> ({failed})</span>
-          </p>
-          {event.hostWhatsapp && (
-            <a className="btn btn--olive btn--block" href={`https://wa.me/${event.hostWhatsapp}?text=${encodeURIComponent(replyText(attending === 'yes'))}`} target="_blank" rel="noopener noreferrer">
-              إرسال الرد عبر واتساب
-            </a>
-          )}
-        </div>
-      )}
-      <button type="submit" className="btn btn--champagne btn--block" disabled={sending} aria-busy={sending}>
-        {sending ? 'جارٍ الإرسال…' : 'إرسال الرد'}
+      <button type="submit" className="btn btn--whatsapp btn--block">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+          <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.3-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 11.9 11.9 0 0 0 4.6 4c1.7.7 2.4.8 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.2-.2-.4-.3Z" />
+        </svg>
+        إرسال عبر واتساب
       </button>
     </form>
   )
