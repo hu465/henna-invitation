@@ -1,6 +1,6 @@
 import { useId, useRef, useState, type FormEvent } from 'react'
 import type { EventDetails } from '../config/event'
-import { addRsvp } from '../lib/store'
+import { addRsvp, sendRsvp } from '../lib/store'
 import { arDigits, gregorianDate } from '../lib/format'
 
 type Errors = Partial<Record<'name' | 'attending', string>>
@@ -13,6 +13,8 @@ export function Rsvp({ event }: { event: EventDetails }) {
   const [message, setMessage] = useState('')
   const [errors, setErrors] = useState<Errors>({})
   const [sent, setSent] = useState<null | { attending: boolean }>(null)
+  const [sending, setSending] = useState(false)
+  const [failed, setFailed] = useState(false)
   const nameRef = useRef<HTMLInputElement>(null)
   const statusRef = useRef<HTMLDivElement>(null)
 
@@ -23,14 +25,24 @@ export function Rsvp({ event }: { event: EventDetails }) {
     return e
   }
 
-  const submit = (ev: FormEvent) => {
+  const submit = async (ev: FormEvent) => {
     ev.preventDefault()
+    if (sending) return
     const e = validate()
     setErrors(e)
     if (e.name) return nameRef.current?.focus()
     if (e.attending) return document.getElementById(`${id}-yes`)?.focus()
-    addRsvp({ name: name.trim(), attending: attending === 'yes', guests: attending === 'yes' ? guests : 0, message: message.trim() })
-    setSent({ attending: attending === 'yes' })
+    const reply = { name: name.trim(), attending: attending === 'yes', guests: attending === 'yes' ? guests : 0, message: message.trim() }
+    setSending(true)
+    setFailed(false)
+    const ok = await sendRsvp(reply)
+    setSending(false)
+    if (!ok) {
+      setFailed(true)
+      return
+    }
+    addRsvp(reply)
+    setSent({ attending: reply.attending })
     requestAnimationFrame(() => statusRef.current?.focus())
   }
 
@@ -47,7 +59,7 @@ export function Rsvp({ event }: { event: EventDetails }) {
           <path className="rsvp-check" pathLength={1} d="M26 41 l9 9 l19 -21" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         <h3>{sent.attending ? 'وصلنا ردّكِ، ننتظركِ بشوق' : 'وصلنا ردّكِ، ستفتقدكِ السهرة'}</h3>
-        <p>شكراً {name.trim()} — حُفظ الرد على هذا الجهاز.</p>
+        <p>شكراً {name.trim()} — وصل ردّكِ إلى صاحبة الدعوة.</p>
         {event.hostWhatsapp && (
           <a className="btn btn--olive" href={`https://wa.me/${event.hostWhatsapp}?text=${encodeURIComponent(waText)}`} target="_blank" rel="noopener noreferrer">
             أرسلي الرد لصاحبة الدعوة عبر واتساب
@@ -118,8 +130,18 @@ export function Rsvp({ event }: { event: EventDetails }) {
         <textarea id={`${id}-msg`} rows={3} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="دعواتكِ وتهانيكِ…" />
       </div>
 
-      <button type="submit" className="btn btn--champagne btn--block">
-        إرسال الرد
+      {failed && (
+        <p className="field-error rsvp-failed" role="alert">
+          تعذّر إرسال الرد، تأكّدي من الاتصال وحاولي مرة أخرى.
+          {event.hostWhatsapp && (
+            <>
+              {' '}أو <a href={`https://wa.me/${event.hostWhatsapp}`} target="_blank" rel="noopener noreferrer">راسلينا عبر واتساب</a>
+            </>
+          )}
+        </p>
+      )}
+      <button type="submit" className="btn btn--champagne btn--block" disabled={sending} aria-busy={sending}>
+        {sending ? 'جارٍ الإرسال…' : 'إرسال الرد'}
       </button>
     </form>
   )

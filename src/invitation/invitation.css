@@ -1422,3 +1422,12 @@
 .closing .qr-link {
   display: none;
 }
+
+.btn[disabled] {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.rsvp-failed a {
+  color: inherit;
+}

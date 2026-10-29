@@ -62,6 +62,20 @@ export function addRsvp(rsvp: Omit<Rsvp, 'id' | 'createdAt'>): Rsvp {
   return entry
 }
 
+/** Sends a reply to the host (the /api/rsvp endpoint on the deployed site). */
+export async function sendRsvp(rsvp: Omit<Rsvp, 'id' | 'createdAt'>): Promise<boolean> {
+  try {
+    const res = await fetch('/api/rsvp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rsvp),
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
 export function removeRsvp(id: string) {
   write(RSVP_KEY, loadRsvps().filter((r) => r.id !== id))
 }

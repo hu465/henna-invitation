@@ -4,9 +4,13 @@ import type { EventDetails } from '../config/event'
 import { WaxSealArt } from '../art/Ornaments'
 import { TatreezBand } from '../art/Levant'
 
-/** The link the QR code opens: the configured invitation URL, or this page. */
+/**
+ * The link the QR code opens: this page when it is the site itself (e.g. on
+ * Vercel), or the configured invitation URL when shown inside another page.
+ */
 export function inviteLink(event: EventDetails) {
-  return event.inviteUrl || `${location.origin}${location.pathname}`
+  const embedded = window.top !== window.self
+  return embedded && event.inviteUrl ? event.inviteUrl : `${location.origin}${location.pathname}`
 }
 
 // High error correction leaves room for the small wax-seal emblem in the centre.

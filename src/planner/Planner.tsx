@@ -1,7 +1,7 @@
 import { useState, type ChangeEvent } from 'react'
 import type { EventDetails } from '../config/event'
-import { loadEvent, loadRsvps, loadTasks, removeRsvp, resetEvent, saveEvent, saveTasks, type Task } from '../lib/store'
-import { arDigits } from '../lib/format'
+import { loadEvent, loadTasks, resetEvent, saveEvent, saveTasks, type Task } from '../lib/store'
+import { Replies } from './Replies'
 import { InviteQr, QrActions } from '../invitation/InviteQr'
 import '../invitation/invitation.css'
 import './planner.css'
@@ -31,7 +31,6 @@ const fields: { key: keyof EventDetails; label: string; type?: string; hint?: st
 export function Planner() {
   const [event, setEvent] = useState(loadEvent)
   const [saved, setSaved] = useState(false)
-  const [rsvps, setRsvps] = useState(loadRsvps)
   const [tasks, setTasks] = useState(loadTasks)
   const [newTask, setNewTask] = useState('')
 
@@ -45,8 +44,6 @@ export function Planner() {
     saveTasks(next)
   }
 
-  const coming = rsvps.filter((r) => r.attending)
-  const headcount = coming.reduce((n, r) => n + r.guests, 0)
 
   return (
     <div className="planner">
@@ -101,33 +98,7 @@ export function Planner() {
 
       <section className="panel" aria-labelledby="p-rsvp">
         <h2 id="p-rsvp">الردود</h2>
-        <div className="p-stats">
-          <div><strong>{arDigits(coming.length)}</strong> ردود بالحضور</div>
-          <div><strong>{arDigits(headcount)}</strong> إجمالي الحضور</div>
-          <div><strong>{arDigits(rsvps.length - coming.length)}</strong> اعتذار</div>
-        </div>
-        {rsvps.length === 0 ? (
-          <p className="panel-note">لا توجد ردود محفوظة على هذا الجهاز بعد. ردود الضيوف تصلكِ عبر واتساب عند إضافة الرقم أعلاه.</p>
-        ) : (
-          <table className="p-table">
-            <thead>
-              <tr><th>الاسم</th><th>الحضور</th><th>العدد</th><th>الرسالة</th><th><span className="sr-only">حذف</span></th></tr>
-            </thead>
-            <tbody>
-              {rsvps.map((r) => (
-                <tr key={r.id}>
-                  <td>{r.name}</td>
-                  <td>{r.attending ? 'نعم' : 'لا'}</td>
-                  <td>{arDigits(r.guests)}</td>
-                  <td>{r.message}</td>
-                  <td>
-                    <button className="p-x" aria-label={`حذف رد ${r.name}`} onClick={() => { removeRsvp(r.id); setRsvps(loadRsvps()) }}>×</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        <Replies />
       </section>
 
       <section className="panel" aria-labelledby="p-tasks">

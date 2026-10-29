@@ -42,3 +42,12 @@ reaches the host without a backend. Collecting responses centrally needs a backe
 - `src/invitation/`: hero reveal (appended to the master timeline), countdown, details, RSVP, scroll scenes
 - `src/art/`: procedural olive branch, wax seal, ornaments
 - `docs/`: design guideline and design story (motion principles)
+
+## Deploy on Vercel (with RSVP replies)
+
+1. Push this folder to a GitHub repository, then in Vercel choose **Add New → Project** and import it. Vercel detects Vite; keep the defaults (build `npm run build`, output `dist`).
+2. In the project, open **Storage → Create Database → Upstash (Redis)**, pick the free plan and connect it to the project. This adds `KV_REST_API_URL` and `KV_REST_API_TOKEN` automatically.
+3. In **Settings → Environment Variables**, add `ADMIN_KEY` with a password only you know.
+4. Redeploy (Deployments → ⋯ → Redeploy) so the function sees the new variables.
+
+Guests reply through the form on the invitation; replies are stored by `api/rsvp.js`. To see them, open `https://<your-site>/#planner`, enter the `ADMIN_KEY`, and you get the list, totals and an Excel (CSV) download.
