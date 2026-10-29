@@ -43,7 +43,7 @@ export const defaultEvent: EventDetails = {
   dressCode: 'الثوب',
   dressNote: 'يسعدنا أن تشاركينا الفرحة بالثوب التراثي المطرّز، باللون والتطريز الذي تحبّينه',
   note: 'نعتذر عن اصطحاب الأطفال',
-  hostWhatsapp: '',
+  hostWhatsapp: '962792221680',
   rsvpDeadline: '2026-11-03',
   musicUrl: './music/henna-song-1m16.mp3',
   ambientVideo: '',
