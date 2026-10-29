@@ -1428,8 +1428,19 @@
   cursor: progress;
 }
 
-.rsvp-failed a {
-  color: inherit;
+.rsvp-failed {
+  display: grid;
+  gap: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.rsvp-failed .field-error {
+  margin: 0;
+}
+
+.rsvp-code {
+  font-size: 0.8em;
+  opacity: 0.7;
 }
 
 .not-you {

@@ -18,7 +18,7 @@ export function Rsvp({ event, guestName = '' }: { event: EventDetails; guestName
   const [errors, setErrors] = useState<Errors>({})
   const [sent, setSent] = useState<null | { attending: boolean }>(null)
   const [sending, setSending] = useState(false)
-  const [failed, setFailed] = useState(false)
+  const [failed, setFailed] = useState('')
   const nameRef = useRef<HTMLInputElement>(null)
   const statusRef = useRef<HTMLDivElement>(null)
 
@@ -38,11 +38,11 @@ export function Rsvp({ event, guestName = '' }: { event: EventDetails; guestName
     if (e.attending) return document.getElementById(`${id}-yes`)?.focus()
     const reply = { name: name.trim(), attending: attending === 'yes', guests: attending === 'yes' ? guests : 0, message: message.trim() }
     setSending(true)
-    setFailed(false)
-    const ok = await sendRsvp(reply)
+    setFailed('')
+    const problem = await sendRsvp(reply)
     setSending(false)
-    if (!ok) {
-      setFailed(true)
+    if (problem) {
+      setFailed(problem)
       return
     }
     addRsvp(reply)
@@ -50,9 +50,9 @@ export function Rsvp({ event, guestName = '' }: { event: EventDetails; guestName
     requestAnimationFrame(() => statusRef.current?.focus())
   }
 
-  const waText = sent
-    ? `ليلة حنّة ${event.brideName}\nالاسم: ${name.trim()}\n${sent.attending ? `سأحضر بإذن الله (${guests} ${guests > 1 ? 'أشخاص' : 'شخص'})` : 'أعتذر عن الحضور'}${message.trim() ? `\n${message.trim()}` : ''}`
-    : ''
+  const replyText = (coming: boolean) =>
+    `ليلة حنّة ${event.brideName}\nالاسم: ${name.trim()}\n${coming ? `سأحضر بإذن الله (${guests} ${guests > 1 ? 'أشخاص' : 'شخص'})` : 'أعتذر عن الحضور'}${message.trim() ? `\n${message.trim()}` : ''}`
+  const waText = sent ? replyText(sent.attending) : ''
 
   if (sent) {
     return (
@@ -135,14 +135,17 @@ export function Rsvp({ event, guestName = '' }: { event: EventDetails; guestName
       </div>
 
       {failed && (
-        <p className="field-error rsvp-failed" role="alert">
-          تعذّر إرسال الرد، تأكّدي من الاتصال وحاولي مرة أخرى.
+        <div className="rsvp-failed" role="alert">
+          <p className="field-error">
+            تعذّر حفظ الرد{event.hostWhatsapp ? '، أرسليه لنا عبر واتساب بضغطة واحدة' : '، حاولي مرة أخرى'}.
+            <span className="rsvp-code" dir="ltr"> ({failed})</span>
+          </p>
           {event.hostWhatsapp && (
-            <>
-              {' '}أو <a href={`https://wa.me/${event.hostWhatsapp}`} target="_blank" rel="noopener noreferrer">راسلينا عبر واتساب</a>
-            </>
+            <a className="btn btn--olive btn--block" href={`https://wa.me/${event.hostWhatsapp}?text=${encodeURIComponent(replyText(attending === 'yes'))}`} target="_blank" rel="noopener noreferrer">
+              إرسال الرد عبر واتساب
+            </a>
           )}
-        </p>
+        </div>
       )}
       <button type="submit" className="btn btn--champagne btn--block" disabled={sending} aria-busy={sending}>
         {sending ? 'جارٍ الإرسال…' : 'إرسال الرد'}

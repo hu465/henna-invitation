@@ -62,17 +62,22 @@ export function addRsvp(rsvp: Omit<Rsvp, 'id' | 'createdAt'>): Rsvp {
   return entry
 }
 
-/** Sends a reply to the host (the /api/rsvp endpoint on the deployed site). */
-export async function sendRsvp(rsvp: Omit<Rsvp, 'id' | 'createdAt'>): Promise<boolean> {
+/**
+ * Sends a reply to the host (the /api/rsvp endpoint on the deployed site).
+ * Resolves to '' on success, or a short reason code shown with the error.
+ */
+export async function sendRsvp(rsvp: Omit<Rsvp, 'id' | 'createdAt'>): Promise<string> {
   try {
     const res = await fetch('/api/rsvp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(rsvp),
     })
-    return res.ok
+    if (res.ok) return ''
+    const body = await res.json().catch(() => ({}))
+    return `${res.status}${body.error ? ` ${body.error}` : ''}`
   } catch {
-    return false
+    return 'network'
   }
 }
 
