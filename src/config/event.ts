@@ -30,7 +30,7 @@ export interface EventDetails {
 }
 
 export const defaultEvent: EventDetails = {
-  brideName: 'سارة عمر يونس',
+  brideName: 'سارة',
   groomName: '',
   monogram: 'س',
   hostLine: 'تتشرّف عائلة العروس بدعوتكم',

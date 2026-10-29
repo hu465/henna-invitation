@@ -185,8 +185,7 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
         <div className="cameo-wrap" data-parallax="6">
           <Cameo>
             <span className="cameo-seal"><WaxSealArt monogram={event.monogram} /></span>
-            <p className="cameo-label">ليلة حنّة</p>
-            <h2 id="cameo-title" className="cameo-name">{event.brideName}</h2>
+            <h2 id="cameo-title" className="cameo-name">ليلة الحنّة</h2>
             <p className="cameo-date">{weekday(event)}</p>
             <p className="cameo-date">{gregorianDate(event)}</p>
             {hijri && <p className="cameo-hijri">{hijri}</p>}
@@ -278,14 +277,6 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
           <Rosette r={34} x={200} y={110} fill={CARD_PAPER} seed={5} />
         </svg>
         <p className="closing-line" data-wipe>بانتظاركم بكل الحب</p>
-        <p className="closing-names" data-rise>
-          {event.brideName}
-          {event.groomName && (
-            <>
-              {' '}<span aria-hidden="true">·</span> {event.groomName}
-            </>
-          )}
-        </p>
         <Divider className="closing-divider" />
         <button type="button" className="btn btn--text replay" onClick={onReplay}>
           إعادة فتح الدعوة
