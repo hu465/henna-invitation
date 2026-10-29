@@ -67,6 +67,9 @@ export function QrActions({ event, download = false }: { event: EventDetails; do
         <button type="button" className="btn btn--olive" onClick={copy}>
           {copied ? 'تم نسخ الرابط' : 'نسخ رابط الدعوة'}
         </button>
+        <a className="btn btn--ghost" href={`https://wa.me/?text=${encodeURIComponent(`ليلة حنّة ${event.brideName}\n${url}`)}`} target="_blank" rel="noopener noreferrer">
+          إرسال عبر واتساب
+        </a>
         {canShare && (
           <button type="button" className="btn btn--ghost" onClick={() => navigator.share({ title: `ليلة حنّة ${event.brideName}`, url }).catch(() => {})}>
             مشاركة

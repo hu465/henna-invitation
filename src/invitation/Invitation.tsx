@@ -4,8 +4,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useGSAP } from '@gsap/react'
 import { programme, type EventDetails } from '../config/event'
 import { WaxSealArt, Divider } from '../art/Ornaments'
-import { Baked, BevelStroke, CornerBouquet, Rosette, Sprig } from '../art/Relief'
-import { Drape, ThobeEngraving, Valance } from '../art/Engravings'
+import { Baked, CornerBouquet, Rosette, Sprig } from '../art/Relief'
+import { ThobeEngraving } from '../art/Engravings'
 import { Drift } from '../art/Drift'
 import { SoundToggle } from '../audio/SoundToggle'
 import { useViewport } from '../lib/useViewport'
@@ -81,10 +81,8 @@ function Cameo({ children }: { children: ReactNode }) {
 export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ event, ready, onReplay }, heroRef) {
   const main = useRef<HTMLElement>(null)
   const [pillHidden, setPillHidden] = useState(true)
-  const { w, h } = useViewport()
+  const { w } = useViewport()
   const cornerSize = Math.min(w * 0.42, 260)
-  const drapeW = Math.min(w * (w < 600 ? 0.17 : 0.24), 210)
-  const drapeH = Math.min(h * 0.9, 760)
   const hijri = hijriDate(event)
 
   // Ambient loops run only in scenes that are on screen.
@@ -98,7 +96,7 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
   // The RSVP shortcut is hidden over the hero and from the RSVP scene onwards.
   useEffect(() => {
     if (!ready) return
-    const hiders = ['.hero', '#rsvp', '#share', '.closing'].map((s) => document.querySelector(s)).filter((el): el is Element => !!el)
+    const hiders = ['.hero', '#rsvp', '.closing'].map((s) => document.querySelector(s)).filter((el): el is Element => !!el)
     const seen = new Map<Element, boolean>()
     const io = new IntersectionObserver((entries) => {
       entries.forEach((e) => seen.set(e.target, e.isIntersecting))
@@ -117,7 +115,9 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
       mm.add('(prefers-reduced-motion: no-preference)', () => {
         gsap.utils.toArray<HTMLElement>('[data-scene]').forEach((scene) => {
           const tl = gsap.timeline({ scrollTrigger: { trigger: scene, start: 'top 72%' } })
-          tl.from(scene.querySelectorAll('[data-rise]'), { opacity: 0, y: 26, duration: 0.9, stagger: 0.1, ease: 'power3.out' })
+          // Explicit end values: buttons carry a CSS transform transition that would
+          // otherwise be read back as their resting position.
+          tl.fromTo(scene.querySelectorAll('[data-rise]'), { opacity: 0, y: 26 }, { opacity: 1, y: 0, duration: 0.9, stagger: 0.1, ease: 'power3.out' })
           const wipes = scene.querySelectorAll('[data-wipe]')
           if (wipes.length)
             tl.fromTo(wipes, { clipPath: 'inset(-25% 0% -25% 100%)' }, { clipPath: 'inset(-25% 0% -25% 0%)', duration: 1.1, stagger: 0.15, ease: 'power3.inOut', clearProps: 'clipPath' }, 0)
@@ -128,10 +128,6 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
           scene.querySelectorAll('.divider .draw').forEach((d) => tl.fromTo(d, { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.2, ease: 'power2.inOut' }, 0.2))
         })
 
-        // The programme's curtains draw open as it arrives.
-        const stage = { trigger: '#programme', start: 'top bottom', end: 'top 25%', scrub: 0.6 }
-        gsap.from('.drape--start', { xPercent: 30, ease: 'none', scrollTrigger: stage })
-        gsap.from('.drape--end', { xPercent: -30, ease: 'none', scrollTrigger: stage })
         // Pearls catch the light one after another around the cameo.
         gsap.from('.cameo-art circle', { scale: 0, transformOrigin: '50% 50%', stagger: 0.025, duration: 0.4, ease: 'back.out(2)', scrollTrigger: { trigger: '.cameo', start: 'top 75%' } })
         // Gentle parallax on relief corners and the cameo.
@@ -154,7 +150,7 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
         <div className="hero-bed" aria-hidden="true"><Satin color="#47542f" priority={2} /></div>
         <InvitationFace event={event} />
         <div className="hero-petals" aria-hidden="true"><Drift kind="petal" count={8} seed={21} /></div>
-        <a className="scroll-cue" href="#countdown">
+        <a className="scroll-cue" href="#date">
           <span>تفاصيل الدعوة</span>
           <svg viewBox="0 0 24 36" aria-hidden="true">
             <rect x="1" y="1" width="22" height="34" rx="11" fill="none" stroke="currentColor" />
@@ -163,24 +159,8 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
         </a>
       </section>
 
-      {/* ── Countdown: an embossed plaque on an olive band ── */}
-      <section id="countdown" className="scene scene--paper scene--countdown" data-scene aria-labelledby="countdown-title">
-        <div className="scene-top" data-parallax="8"><TopCorners w={w} size={cornerSize} /></div>
-        <div className="scene-inner">
-          <p className="eyebrow" data-rise>الموعد يقترب</p>
-          <h2 id="countdown-title" className="scene-title" data-wipe>العدّ التنازلي</h2>
-        </div>
-        <div className="cd-band">
-          <Satin color="#3a4529" />
-          <div className="cd-plaque" data-rise>
-            <Countdown event={event} />
-          </div>
-        </div>
-        <p className="script-line" data-wipe>نترقّب لقاءكم</p>
-      </section>
-
-      {/* ── Cameo on satin: the bride and the date ── */}
-      <section id="cameo" className="scene scene--satin" data-scene aria-labelledby="cameo-title">
+      {/* ── The date: a pearl cameo with the countdown beneath ── */}
+      <section id="date" className="scene scene--satin scene--date" data-scene aria-labelledby="cameo-title">
         <Satin color="#b7c19f" />
         <div className="cameo-wrap" data-parallax="6">
           <Cameo>
@@ -191,59 +171,49 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
             {hijri && <p className="cameo-hijri">{hijri}</p>}
           </Cameo>
         </div>
+        <div className="cd-plaque" data-rise>
+          <Countdown event={event} />
+        </div>
       </section>
 
-      {/* ── Location: an engraving of the venue ── */}
-      <section id="location" className="scene scene--paper" data-scene aria-labelledby="location-title">
+      {/* ── Everything a guest needs, on one embossed card ── */}
+      <section id="details" className="scene scene--paper scene--details" data-scene aria-labelledby="details-title">
+        <div className="scene-top" data-parallax="8"><TopCorners w={w} size={cornerSize} /></div>
         <div className="scene-inner">
-          <p className="eyebrow" data-rise>المكان</p>
-          <h2 id="location-title" className="scene-title" data-wipe>{event.venueName}</h2>
-          <Location event={event} />
-        </div>
-      </section>
-
-      {/* ── The evening's programme, framed by embossed drapes ── */}
-      <section id="programme" className="scene scene--paper scene--programme" data-scene aria-labelledby="programme-title">
-        <div className="stage-drapes" aria-hidden="true">
-          <Valance w={w} fill={CARD_PAPER} />
-          <Drape className="drape--start" w={drapeW} h={drapeH} fill={CARD_PAPER} />
-          <Drape className="drape--end" w={drapeW} h={drapeH} fill={CARD_PAPER} />
-        </div>
-        <div className="scene-inner programme-inner">
-          <h2 id="programme-title" className="scene-title script" data-wipe>برنامج الليلة</h2>
-          <p className="programme-date" data-rise>
-            <bdi>{weekday(event)}</bdi>، <bdi>{gregorianDate(event)}</bdi>
-          </p>
-          <ol className="timeline">
-            {programme.map((item) => (
-              <li key={item.time + item.title} data-rise>
-                <span className="tl-time">{timeLabel(item.time)}</span>
-                <span className="tl-dot" aria-hidden="true" />
-                <span className="tl-text">
-                  <span className="tl-title">{item.title}</span>
-                  {item.note && <span className="tl-note">{item.note}</span>}
-                </span>
-              </li>
-            ))}
-          </ol>
-          {event.note && <p className="programme-note" data-rise>{event.note}</p>}
-        </div>
-      </section>
-
-      {/* ── Dress code inside an embossed arch ── */}
-      <section id="dress" className="scene scene--paper" data-scene aria-labelledby="dress-title">
-        <div className="dress-arch" data-rise>
-          <svg className="dress-arch-art" viewBox="0 0 300 470" preserveAspectRatio="none" aria-hidden="true">
-            <BevelStroke d="M22 458 V156 C 22 84 88 50 150 26 C 212 50 278 84 278 156 V458 Z" paper={CARD_PAPER} width={1} hi="rgba(60,72,46,0.22)" sh="rgba(255,255,255,0.95)" depth={0.8} />
-            <BevelStroke d="M8 466 V150 C 8 70 80 34 150 8 C 220 34 292 70 292 150 V466" paper={CARD_PAPER} width={5} depth={1.1} />
-          </svg>
-          <div className="dress-body">
-            <p className="eyebrow">اللباس</p>
-            <h2 id="dress-title" className="dress-title" data-wipe>{event.dressCode}</h2>
-            <ThobeEngraving className="thobe-art" />
-            {event.dressNote && <p className="dress-note">{event.dressNote}</p>}
-          </div>
-          <span className="dress-seal" aria-hidden="true"><WaxSealArt monogram={event.monogram} /></span>
+          <p className="eyebrow" data-rise>تفاصيل الليلة</p>
+          <h2 id="details-title" className="scene-title script" data-wipe>أهلاً بكم</h2>
+          <article className="details-card" data-rise>
+            <div className="dc-block">
+              <p className="dc-label">المكان</p>
+              <h3 className="dc-title">{event.venueName}</h3>
+              <Location event={event} />
+            </div>
+            <div className="dc-block">
+              <p className="dc-label">البرنامج</p>
+              <ol className="timeline">
+                {programme.map((item) => (
+                  <li key={item.time + item.title}>
+                    <span className="tl-time">{timeLabel(item.time)}</span>
+                    <span className="tl-dot" aria-hidden="true" />
+                    <span className="tl-text">
+                      <span className="tl-title">{item.title}</span>
+                      {item.note && <span className="tl-note">{item.note}</span>}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div className="dc-block dc-dress">
+              <ThobeEngraving className="dc-thobe" />
+              <div>
+                <p className="dc-label">اللباس</p>
+                <h3 className="dc-title dc-title--script">{event.dressCode}</h3>
+                {event.dressNote && <p className="dc-note">{event.dressNote}</p>}
+              </div>
+            </div>
+            {event.note && <p className="dc-notice">{event.note}</p>}
+            <span className="dc-seal" aria-hidden="true"><WaxSealArt monogram={event.monogram} /></span>
+          </article>
         </div>
       </section>
 
@@ -257,20 +227,8 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
         </div>
       </section>
 
-      {/* ── Share: QR code for passing the invitation on ── */}
-      <section id="share" className="scene scene--paper scene--share" data-scene aria-labelledby="share-title">
-        <div className="scene-inner">
-          <p className="eyebrow" data-rise>شاركي الفرحة</p>
-          <h2 id="share-title" className="scene-title" data-wipe>رمز الدعوة</h2>
-          <div className="share-layout">
-            <div data-rise><InviteQr event={event} /></div>
-            <div data-rise><QrActions event={event} /></div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Closing ── */}
-      <footer className="closing" data-scene>
+      {/* ── Closing, with the QR code for passing the invitation on ── */}
+      <footer id="share" className="closing" data-scene aria-label="ختام الدعوة">
         <svg className="closing-relief" viewBox="0 0 400 160" aria-hidden="true">
           <Sprig length={170} leaves={10} seed={3} fill={CARD_PAPER} transform="translate(200 120) rotate(-160)" />
           <Sprig length={170} leaves={10} seed={8} fill={CARD_PAPER} transform="translate(200 120) rotate(-20)" />
@@ -278,6 +236,10 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
         </svg>
         <p className="closing-line" data-wipe>بانتظاركم بكل الحب</p>
         <Divider className="closing-divider" />
+        <div className="share-layout" data-rise>
+          <InviteQr event={event} className="qr-card--compact" />
+          <QrActions event={event} />
+        </div>
         <button type="button" className="btn btn--text replay" onClick={onReplay}>
           إعادة فتح الدعوة
         </button>
