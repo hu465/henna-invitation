@@ -156,6 +156,8 @@ export function EnvelopeIntro({ event, phase, onPhase, buildHeroReveal }: Props)
       .call(crack, [], 'break')
       // The impact travels through the paper: a tiny, quick shudder.
       .to(q('.petals, .flap-canvas'), { keyframes: { x: [0, -2.5, 2, -1.2, 0.8, 0], y: [0, 1.5, -1, 0.6, 0, 0] }, duration: 0.24, ease: 'none' }, 'break')
+      .set(q('.seal-whole'), { opacity: 0 }, 'break')
+      .set(q('.seal-half'), { opacity: 1 }, 'break')
       .to(q('.seal-crack, .seal-glow'), { opacity: 0, duration: 0.15 }, 'break')
       .to(q('.seal-l'), { x: -36, y: 90, rotation: -34, duration: 0.75, ease: 'power2.in' }, 'break')
       .to(q('.seal-r'), { x: 30, y: 104, rotation: 28, duration: 0.75, ease: 'power2.in' }, 'break')
@@ -332,6 +334,8 @@ export function EnvelopeIntro({ event, phase, onPhase, buildHeroReveal }: Props)
         disabled={phase !== 'closed'}
       >
         <span className="seal-glow" aria-hidden="true" />
+        {/* One piece of wax at rest; it becomes two halves only when it breaks. */}
+        <span className="seal-whole" aria-hidden="true"><WaxSealArt monogram={event.monogram} /></span>
         <span className="seal-half seal-l" aria-hidden="true"><WaxSealArt monogram={event.monogram} /></span>
         <span className="seal-half seal-r" aria-hidden="true"><WaxSealArt monogram={event.monogram} /></span>
         <svg className="seal-crack" viewBox="0 0 100 100" aria-hidden="true">

@@ -249,7 +249,7 @@
   border: 0;
   border-radius: 50%;
   background: none;
-  filter: drop-shadow(0 8px 8px rgba(20, 16, 6, 0.5)) drop-shadow(0 2px 2px rgba(20, 16, 6, 0.45));
+  filter: drop-shadow(0 6px 7px rgba(16, 14, 6, 0.45)) drop-shadow(0 1.5px 1.5px rgba(16, 14, 6, 0.5));
   transition: filter 0.25s ease;
   touch-action: manipulation;
 }
@@ -268,18 +268,37 @@
   border-radius: 50%;
 }
 
-.intro[data-phase='closed'] .seal::before {
-  content: '';
+.seal-whole {
   position: absolute;
-  inset: -8px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(232, 222, 190, 0.85);
-  animation: seal-ring 2.6s var(--ease-out) infinite;
+  inset: 0;
 }
 
-@keyframes seal-ring {
-  0% { transform: scale(0.92); opacity: 0.9; }
-  100% { transform: scale(1.34); opacity: 0; }
+.seal-whole svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Halves wait out of sight until the wax breaks. */
+.seal-half {
+  opacity: 0;
+}
+
+/* A slow glint of light passing over the wax, inviting the tap. */
+.intro[data-phase='closed'] .seal::after {
+  content: '';
+  position: absolute;
+  inset: 14%;
+  border-radius: 50%;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 248, 228, 0.55) 48%, transparent 60%);
+  background-size: 300% 100%;
+  mix-blend-mode: soft-light;
+  animation: seal-glint 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes seal-glint {
+  0%, 55% { background-position: 130% 0; }
+  85%, 100% { background-position: -30% 0; }
 }
 
 .seal-half,
