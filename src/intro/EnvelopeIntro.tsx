@@ -16,6 +16,8 @@ export type Phase = 'closed' | 'sealActivated' | 'envelopeOpening' | 'cardEmergi
 
 interface Props {
   event: EventDetails
+  /** The guest this invitation is addressed to ('' when unknown). */
+  guestName: string
   phase: Phase
   onPhase: (p: Phase) => void
   /** Builds the card reveal (ribbon, lift, writing) so it joins the master timeline. */
@@ -100,7 +102,7 @@ function Petal({ side, w, h, seed, onTexture }: { side: Side; w: number; h: numb
   )
 }
 
-export function EnvelopeIntro({ event, phase, onPhase, buildHeroReveal }: Props) {
+export function EnvelopeIntro({ event, guestName, phase, onPhase, buildHeroReveal }: Props) {
   const root = useRef<HTMLDivElement>(null)
   const tl = useRef<gsap.core.Timeline | null>(null)
   const { w, h } = useViewport()
@@ -321,7 +323,16 @@ export function EnvelopeIntro({ event, phase, onPhase, buildHeroReveal }: Props)
         <Drift kind="mote" count={12} seed={5} />
       </div>
 
-      <p className="intro-copy intro-kicker">لديك دعوة خاصة</p>
+      <p className="intro-copy intro-kicker">
+        {guestName ? (
+          <>
+            <span className="intro-to">دعوة خاصة إلى</span>
+            {guestName}
+          </>
+        ) : (
+          'لديك دعوة خاصة'
+        )}
+      </p>
 
       <button
         type="button"

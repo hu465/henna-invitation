@@ -1431,3 +1431,9 @@
 .rsvp-failed a {
   color: inherit;
 }
+
+.not-you {
+  margin-top: 0.2rem;
+  font-size: 0.92rem;
+  color: var(--text-soft);
+}

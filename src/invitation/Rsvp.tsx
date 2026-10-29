@@ -1,13 +1,17 @@
-import { useId, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import type { EventDetails } from '../config/event'
 import { addRsvp, sendRsvp } from '../lib/store'
 import { arDigits, gregorianDate } from '../lib/format'
 
 type Errors = Partial<Record<'name' | 'attending', string>>
 
-export function Rsvp({ event }: { event: EventDetails }) {
+export function Rsvp({ event, guestName = '' }: { event: EventDetails; guestName?: string }) {
   const id = useId()
-  const [name, setName] = useState('')
+  const [name, setName] = useState(guestName)
+  // The guest may give her name after this form has mounted (on the name step).
+  useEffect(() => {
+    if (guestName) setName((n) => n || guestName)
+  }, [guestName])
   const [attending, setAttending] = useState<'yes' | 'no' | ''>('')
   const [guests, setGuests] = useState(1)
   const [message, setMessage] = useState('')

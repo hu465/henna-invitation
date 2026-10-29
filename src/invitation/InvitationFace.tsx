@@ -119,7 +119,7 @@ function Ribbon({ w, h }: { w: number; h: number }) {
   )
 }
 
-export function InvitationFace({ event }: { event: EventDetails }) {
+export function InvitationFace({ event, guestName = '' }: { event: EventDetails; guestName?: string }) {
   const vp = useViewport()
   const w = vp.w
   const h = Math.max(vp.h, 600)
@@ -146,7 +146,7 @@ export function InvitationFace({ event }: { event: EventDetails }) {
 
       <div className="cartouche-body" style={{ left: mx + 22, right: mx + 22, top: top + 22, bottom: bottom + 22 }}>
         <p className="f-basmala" data-reveal="line">بسم الله الرحمن الرحيم</p>
-        <p className="f-love" data-reveal="line">بكل الحب والفرح</p>
+        <p className="f-love" data-reveal="line">{guestName ? `إلى الغالية ${guestName}` : 'بكل الحب والفرح'}</p>
         <h1 className="f-title" tabIndex={-1}>
           <span className="f-title-lead" data-reveal="line">ندعوكم لمشاركتنا</span>
           <span className="sr-only">ليلة الحنّة</span>

@@ -21,10 +21,14 @@ gsap.registerPlugin(ScrollTrigger, useGSAP)
 
 interface Props {
   event: EventDetails
+  /** The guest this invitation is addressed to ('' when unknown). */
+  guestName: string
   /** True once the envelope has handed over; scroll scenes start then. */
   ready: boolean
   /** Plays the envelope opening again from the start. */
   onReplay: () => void
+  /** Forgets the guest's name and asks again. */
+  onChangeGuest: () => void
 }
 
 /** A full-bleed satin surface (turbulence + lighting), baked once and stretched to cover. */
@@ -78,7 +82,7 @@ function Cameo({ children }: { children: ReactNode }) {
   )
 }
 
-export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ event, ready, onReplay }, heroRef) {
+export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ event, guestName, ready, onReplay, onChangeGuest }, heroRef) {
   const main = useRef<HTMLElement>(null)
   const [pillHidden, setPillHidden] = useState(true)
   const { w } = useViewport()
@@ -148,7 +152,7 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
       {/* ── The card inside the envelope ── */}
       <section ref={heroRef} className="hero" aria-label="الدعوة">
         <div className="hero-bed" aria-hidden="true"><Satin color="#47542f" priority={2} /></div>
-        <InvitationFace event={event} />
+        <InvitationFace event={event} guestName={guestName} />
         <div className="hero-petals" aria-hidden="true"><Drift kind="petal" count={8} seed={21} /></div>
         <a className="scroll-cue" href="#date">
           <span>تفاصيل الدعوة</span>
@@ -223,7 +227,7 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
         <div className="scene-inner">
           <p className="eyebrow eyebrow--light" data-rise>تأكيد الحضور</p>
           <h2 id="rsvp-title" className="scene-title scene-title--light" data-wipe>يسعدنا أن نعرف بحضوركِ</h2>
-          <Rsvp event={event} />
+          <Rsvp event={event} guestName={guestName} />
         </div>
       </section>
 
@@ -234,7 +238,8 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
           <Sprig length={170} leaves={10} seed={8} fill={CARD_PAPER} transform="translate(200 120) rotate(-20)" />
           <Rosette r={34} x={200} y={110} fill={CARD_PAPER} seed={5} />
         </svg>
-        <p className="closing-line" data-wipe>بانتظاركم بكل الحب</p>
+        {guestName && <p className="closing-names" data-rise>الغالية {guestName}</p>}
+        <p className="closing-line" data-wipe>{guestName ? 'بانتظاركِ بكل الحب' : 'بانتظاركم بكل الحب'}</p>
         <Divider className="closing-divider" />
         <div className="share-layout" data-rise>
           <InviteQr event={event} className="qr-card--compact" />
@@ -243,6 +248,11 @@ export const Invitation = forwardRef<HTMLElement, Props>(function Invitation({ e
         <button type="button" className="btn btn--text replay" onClick={onReplay}>
           إعادة فتح الدعوة
         </button>
+        {guestName && (
+          <button type="button" className="btn btn--text not-you" onClick={onChangeGuest}>
+            لستِ {guestName}؟ غيّري الاسم
+          </button>
+        )}
       </footer>
 
       {ready && (

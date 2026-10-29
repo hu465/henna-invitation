@@ -4,6 +4,8 @@ import { Invitation } from './invitation/Invitation'
 import { heroRevealTimeline, prepareHero } from './invitation/heroReveal'
 import { loadEvent } from './lib/store'
 import { ReliefDefs } from './art/Relief'
+import { NameGate } from './intro/NameGate'
+import { loadGuestName, saveGuestName } from './lib/guest'
 
 // The planner is for the host only, so guests never download it.
 const Planner = lazy(() => import('./planner/Planner').then((m) => ({ default: m.Planner })))
@@ -33,6 +35,7 @@ const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matc
 
 function GuestInvitation() {
   const [event] = useState(loadEvent)
+  const [guestName, setGuestName] = useState(loadGuestName)
   // `?intro=0` skips the envelope (handy for a direct link to the RSVP).
   const [phase, setPhase] = useState<Phase>(() => (new URLSearchParams(location.search).get('intro') === '0' ? 'invitationOpen' : 'closed'))
   // Bumped on replay so the envelope remounts in its closed state.
@@ -62,6 +65,22 @@ function GuestInvitation() {
     setPhase('closed')
   }, [])
 
+  useEffect(() => {
+    document.title = guestName ? `دعوة ${guestName} — ليلة حنّة ${event.brideName}` : `ليلة حنّة ${event.brideName}`
+  }, [guestName, event.brideName])
+
+  const nameGiven = useCallback((name: string) => {
+    saveGuestName(name)
+    setGuestName(name)
+  }, [])
+
+  // "Not you?": forget the name and start again from the name step.
+  const changeGuest = useCallback(() => {
+    saveGuestName('')
+    setGuestName('')
+    replay()
+  }, [replay])
+
   // Development helper: replay from the console with __invite.replay().
   useEffect(() => {
     if (import.meta.env.DEV) Object.assign(window, { __invite: { replay } })
@@ -71,9 +90,10 @@ function GuestInvitation() {
     <>
       <ReliefDefs />
       <div inert={!open || undefined} aria-hidden={!open || undefined}>
-        <Invitation ref={hero} event={event} ready={open} onReplay={replay} />
+        <Invitation ref={hero} event={event} guestName={guestName} ready={open} onReplay={replay} onChangeGuest={changeGuest} />
       </div>
-      {!open && <EnvelopeIntro key={run} event={event} phase={phase} onPhase={onPhase} buildHeroReveal={buildHeroReveal} />}
+      {!open && <EnvelopeIntro key={run} event={event} guestName={guestName} phase={phase} onPhase={onPhase} buildHeroReveal={buildHeroReveal} />}
+      {!open && !guestName && <NameGate event={event} onDone={nameGiven} />}
     </>
   )
 }
