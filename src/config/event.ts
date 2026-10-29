@@ -45,7 +45,7 @@ export const defaultEvent: EventDetails = {
   note: 'نعتذر عن اصطحاب الأطفال',
   hostWhatsapp: '',
   rsvpDeadline: '2026-11-03',
-  musicUrl: './music/henna-song.mp3',
+  musicUrl: './music/henna-song-1m16.mp3',
   ambientVideo: '',
   ambientPoster: '',
   // Replace with the final hosted link before printing or sharing the QR code.
